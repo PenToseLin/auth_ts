@@ -1,14 +1,10 @@
 export interface TableListItem {
   id: number;
-  username: string;
-  mobile: string;
-  avatar: string;
-  status: number;
-  last_login: Date;
+  menu_name: string;
+  queue: string;
+  parent_id: number;
   update_time: Date;
   create_time: Date;
-  progress: number;
-  disabled: boolean;
 }
 
 export interface TableListPagination {

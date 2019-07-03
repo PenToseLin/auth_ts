@@ -1,35 +1,35 @@
 import request from 'umi-request';
 import { TableListParams } from './data';
 
-export async function queryUserList(params: TableListParams) {
-  return request(`/admin-api/user/list`, {
+export async function queryAuthList(params: TableListParams) {
+  return request(`/admin-api/auth/list`, {
     params,
   });
 }
 
-export async function disableUser(params) {
-  return request('/admin-api/user/disable', {
+export async function disableAuth(params) {
+  return request('/admin-api/auth/disable', {
     method: 'DELETE',
     data: { ...params },
   });
 }
 
-export async function enableUser(params) {
-  return request('/admin-api/user/enable', {
+export async function enableAuth(params) {
+  return request('/admin-api/auth/enable', {
     method: 'PUT',
     data: { ...params },
   });
 }
 
-export async function addUser(params) {
-  return request('/admin-api/user/add', {
+export async function addAuth(params) {
+  return request('/admin-api/auth/add', {
     method: 'POST',
     data: { ...params },
   });
 }
 
-export async function updateUser(params) {
-  return request('/admin-api/user/update', {
+export async function updateAuth(params) {
+  return request('/admin-api/auth/update', {
     method: 'PUT',
     data: { ...params },
   });

@@ -36,17 +36,27 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
     });
   };
 
-  const renderMenuTree = (data) => {
+  const renderMenuTree = (data, disabled=false) => {
     return data.map(item => {
       if (item.children && item.children.length > 0) {
         return (
-          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id}>
-            {renderMenuTree(item.children)}
+          <TreeSelect.TreeNode
+            value={item.id}
+            title={item.menu_name}
+            key={item.id}
+            disabled={disabled || item.id === values.id}
+          >
+            {renderMenuTree(item.children, disabled || item.id === values.id)}
           </TreeSelect.TreeNode>
         );
       } else {
         return (
-          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id} />
+          <TreeSelect.TreeNode
+            value={item.id}
+            title={item.menu_name}
+            key={item.id}
+            disabled={disabled || item.id === values.id}
+          />
         );
       }
     });

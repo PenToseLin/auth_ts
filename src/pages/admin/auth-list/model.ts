@@ -1,4 +1,4 @@
-import { queryUserList, disableUser, addUser, updateUser, enableUser } from './service';
+import { queryAuthList, disableAuth, addAuth, updateAuth, enableAuth } from './service';
 import { TableListDate } from './data';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
@@ -30,7 +30,7 @@ export interface ModelType {
 }
 
 const Model: ModelType = {
-  namespace: 'admin',
+  namespace: 'auth',
 
   state: {
     data: {
@@ -41,7 +41,7 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      const response = yield call(queryUserList, payload);
+      const response = yield call(queryAuthList, payload);
       if (response.code === 200) {
         yield put({
           type: 'save',
@@ -52,19 +52,19 @@ const Model: ModelType = {
       }
     },
     *add({ payload, callback }, { call }) {
-      const response = yield call(addUser, payload);
+      const response = yield call(addAuth, payload);
       if (callback) callback(response);
     },
     *disable({ payload, callback }, { call }) {
-      const response = yield call(disableUser, payload);
+      const response = yield call(disableAuth, payload);
       if (callback) callback(response);
     },
     *enable({ payload, callback }, { call }) {
-      const response = yield call(enableUser, payload);
+      const response = yield call(enableAuth, payload);
       if (callback) callback(response);
     },
     *update({ payload, callback }, { call }) {
-      const response = yield call(updateUser, payload);
+      const response = yield call(updateAuth, payload);
       if (callback) callback(response);
     },
   },

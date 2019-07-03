@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Modal, Form } from 'antd';
+import { Input, Modal, Form, TreeSelect } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { TableListItem } from '../data';
 
@@ -23,15 +23,11 @@ interface UpdateFormProps extends FormComponentProps {
     updateForm
   ) => void;
   handleUpdateModalVisible: () => void;
-  checkPassword: (
-    rule,
-    value,
-    callback: () => void,
-  ) => void;
+  list: TableListItem[];
 }
 
 const UpdateForm: React.SFC<UpdateFormProps> = props => {
-  const { updateModalVisible, form, handleUpdate, handleUpdateModalVisible, checkPassword, values } = props;
+  const { updateModalVisible, form, handleUpdate, handleUpdateModalVisible, values, list } = props;
   const okHandle = () => {
 
     form.validateFields((err, fieldsValue) => {
@@ -39,6 +35,32 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
       handleUpdate(fieldsValue, form);
     });
   };
+
+  const renderMenuTree = (data, disabled=false) => {
+    return data.map(item => {
+      if (item.children && item.children.length > 0) {
+        return (
+          <TreeSelect.TreeNode
+            value={item.id}
+            title={item.menu_name}
+            key={item.id}
+            disabled={disabled || item.id === values.id}
+          >
+            {renderMenuTree(item.children, disabled || item.id === values.id)}
+          </TreeSelect.TreeNode>
+        );
+      } else {
+        return (
+          <TreeSelect.TreeNode
+            value={item.id}
+            title={item.menu_name}
+            key={item.id}
+            disabled={disabled || item.id === values.id}
+          />
+        );
+      }
+    });
+  }
 
   return (
     <Modal
@@ -53,31 +75,23 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
           initialValue: values.id,
         })(<Input type="hidden" />)}
       </FormItem>
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="用户名">
-        {form.getFieldDecorator('username', {
-          initialValue: values.username,
-          rules: [{ required: true, message: '用户名不能为空', min: 1 }],
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级菜单">
+        {form.getFieldDecorator('parent_id',{
+          initialValue: values.parent_id,
+        })(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll showSearch allowClear>
+          {renderMenuTree(list)}
+        </TreeSelect>)}
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单名称">
+        {form.getFieldDecorator('menu_name', {
+          initialValue: values.menu_name,
+          rules: [{ required: true, message: '菜单名称不能为空', min: 1 }],
         })(<Input placeholder="请输入" autoComplete="false" />)}
       </FormItem>
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="手机号码">
-        {form.getFieldDecorator('mobile', {
-          initialValue: values.mobile,
-          rules: [
-            { required: true, message: '手机号码不正确', min: 11, pattern: /^1[2,3,4,5,6,7,8,9][0-9]{9}$/ },
-          ],
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="序号">
+        {form.getFieldDecorator('queue', {
+          initialValue: values.queue,
         })(<Input placeholder="请输入" maxLength={11} autoComplete="false" />)}
-      </FormItem>
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="新密码">
-        {form.getFieldDecorator('password', {
-          rules: [{ message: '密码长度不少于8位数', min: 8 }],
-        })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
-      </FormItem>
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="确认密码">
-        {form.getFieldDecorator('password_confirm', {
-          rules: [
-            { validator: checkPassword }
-          ],
-        })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
       </FormItem>
     </Modal>
   );

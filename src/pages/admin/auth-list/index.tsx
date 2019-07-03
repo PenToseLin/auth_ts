@@ -11,7 +11,6 @@ import {
   Button,
   DatePicker,
   message,
-  Badge,
   Divider,
   Popconfirm,
 } from 'antd';
@@ -20,7 +19,8 @@ import { SorterResult } from 'antd/es/table';
 import StandardTable, { StandardTableColumnProps } from './components/StandardTable';
 import { TableListItem, TableListParams, TableListPagination } from './data';
 import { Dispatch } from 'redux';
-import { IStateType } from './model';
+import { IStateType as AuthType } from './model';
+import { IStateType as MenuType } from '@/pages/admin/menu-list/model'
 import styles from './style.less';
 import UpdateForm, { UpdateValsType } from './components/UpdateForm';
 import CreateForm from './components/CreateForm';
@@ -34,14 +34,11 @@ const getValue = (obj: { [x: string]: string[] }) =>
     .map(key => obj[key])
     .join(',');
 
-type IStatusMapType = 'error' | 'processing';
-const statusMap = ['error', 'success'];
-const status = ['禁用', '启用']
-
 interface TableListProps extends FormComponentProps {
   dispatch: Dispatch<any>;
   loading: boolean;
-  admin: IStateType;
+  auth: AuthType;
+  menu: MenuType;
 }
 
 interface TableListState {
@@ -56,18 +53,21 @@ interface TableListState {
 /* eslint react/no-multi-comp:0 */
 @connect(
   ({
-    admin,
+    auth,
+    menu,
     loading,
   }: {
-    admin: IStateType;
+    auth: AuthType;
+    menu: MenuType;
     loading: {
       models: {
         [key: string]: boolean;
       };
     };
   }) => ({
-    admin,
-    loading: loading.models.admin,
+    auth,
+    menu,
+    loading: loading.models.auth,
   }),
 )
 class TableList extends Component<TableListProps, TableListState> {
@@ -82,36 +82,13 @@ class TableList extends Component<TableListProps, TableListState> {
 
   columns: StandardTableColumnProps[] = [
     {
-      title: '用户名',
-      dataIndex: 'username',
+      title: '菜单名称',
+      dataIndex: 'auth_name',
     },
     {
-      title: '手机号码',
-      dataIndex: 'mobile',
+      title: '序号',
+      dataIndex: 'queue',
 
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      filters: [
-        {
-          text: status[0],
-          value: '0',
-        },
-        {
-          text: status[1],
-          value: '1',
-        },
-      ],
-      render(val: IStatusMapType) {
-        return <Badge status={statusMap[val]} text={status[val]} />;
-      },
-    },
-    {
-      title: '最后登录时间',
-      dataIndex: 'last_login',
-      sorter: true,
-      render: (val: string) => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
     },
     {
       title: '更新时间',
@@ -133,24 +110,13 @@ class TableList extends Component<TableListProps, TableListState> {
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
           <Divider type="vertical" />
-          {record.status === 1 &&
-            <Popconfirm
-              title="确认禁用该用户?"
-              onConfirm={() => this.handleDisable(record)}
-              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-            >
-              <a style={{ color: 'red' }}>禁用</a>
-            </Popconfirm>
-          }
-          {record.status === 0 &&
-            <Popconfirm
-              title="确认启用该用户?"
-              onConfirm={() => this.handleEnable(record)}
-              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-            >
-              <a style={{ color: 'green' }}>启用</a>
-            </Popconfirm>
-          }
+          <Popconfirm
+            title="确认删除该菜单?"
+            onConfirm={() => this.handleDisable(record)}
+            icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+          >
+            <a style={{ color: 'red' }}>删除</a>
+          </Popconfirm>
         </Fragment>
       ),
     },
@@ -159,7 +125,7 @@ class TableList extends Component<TableListProps, TableListState> {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'admin/list',
+      type: 'auth/list',
       payload: {
         pageNo: 1,
         pageSize: 10
@@ -199,7 +165,7 @@ class TableList extends Component<TableListProps, TableListState> {
     })
 
     dispatch({
-      type: 'admin/list',
+      type: 'auth/list',
       payload: {
         ...params,
         pageNo: pagination.current,
@@ -215,7 +181,7 @@ class TableList extends Component<TableListProps, TableListState> {
       formValues: {},
     });
     dispatch({
-      type: 'admin/list',
+      type: 'auth/list',
       payload: {
         pageNo: 1,
         pageSize: 10
@@ -230,46 +196,19 @@ class TableList extends Component<TableListProps, TableListState> {
     });
   };
 
-  // handleDisable = () => {
-  //   const { dispatch } = this.props;
-  //   const { selectedRows } = this.state;
-  //   const { pagination } = this.props.admin.data;
-
-  //   if (!selectedRows) return;
-  //   dispatch({
-  //     type: 'admin/disable',
-  //     payload: {
-  //       id: selectedRows.map(row => row.id),
-  //     },
-  //     callback: (response) => {
-  //       if (response.code === 200) {
-  //         dispatch({
-  //           type: 'admin/list',
-  //           payload: {...pagination}
-  //         })
-  //         this.setState({
-  //           selectedRows: [],
-  //         });
-  //       } else {
-  //         message.error(response.msg);
-  //       }
-  //     },
-  //   });
-  // };
-
   handleDisable = (record) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.auth.data;
     const { formValues } = this.state;
     dispatch({
-      type: 'admin/disable',
+      type: 'auth/disable',
       payload: {
         id: record.id,
       },
       callback: (response) => {
         if (response.code === 200) {
           dispatch({
-            type: 'admin/list',
+            type: 'auth/list',
             payload: {...pagination, ...formValues}
           })
           this.setState({
@@ -284,17 +223,17 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleEnable = (record) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.auth.data;
     const { formValues } = this.state;
     dispatch({
-      type: 'admin/enable',
+      type: 'auth/enable',
       payload: {
         id: record.id,
       },
       callback: (response) => {
         if (response.code === 200) {
           dispatch({
-            type: 'admin/list',
+            type: 'auth/list',
             payload: {...pagination,...formValues}
           })
           this.setState({
@@ -338,18 +277,38 @@ class TableList extends Component<TableListProps, TableListState> {
     });
 
     dispatch({
-      type: 'admin/list',
+      type: 'auth/list',
       payload: values,
     });
   };
 
   handleModalVisible = (flag?: boolean) => {
+    const { dispatch } = this.props;
+    if (flag) {
+      dispatch({
+        type: 'menu/list',
+        payload: {
+          pageNo: 1,
+          pageSize: 20
+        },
+      });
+    }
     this.setState({
       modalVisible: !!flag,
     });
   };
 
   handleUpdateModalVisible = (flag?: boolean, record?: UpdateValsType) => {
+    const { dispatch } = this.props;
+    if (flag) {
+      dispatch({
+        type: 'menu/list',
+        payload: {
+          pageNo: 1,
+          pageSize: 20
+        },
+      });
+    }
     this.setState({
       updateModalVisible: !!flag,
       stepFormValues: record || {},
@@ -358,9 +317,9 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleAdd = (fields, createForm) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.auth.data;
     dispatch({
-      type: 'admin/add',
+      type: 'auth/add',
       payload: {...fields},
       callback: (response) => {
         if (response.code === 200) {
@@ -368,7 +327,7 @@ class TableList extends Component<TableListProps, TableListState> {
           this.handleModalVisible();
           createForm.resetFields();
           dispatch({
-            type: 'admin/list',
+            type: 'auth/list',
             payload: {...pagination},
           });
         } else {
@@ -381,9 +340,9 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleUpdate = (fields: UpdateValsType, createForm) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.auth.data;
     dispatch({
-      type: 'admin/update',
+      type: 'auth/update',
       payload: {...fields},
       callback: (response) => {
         if (response.code === 200) {
@@ -391,7 +350,7 @@ class TableList extends Component<TableListProps, TableListState> {
           this.handleUpdateModalVisible();
           createForm.resetFields();
           dispatch({
-            type: 'admin/list',
+            type: 'auth/list',
             payload: {...pagination},
           });
         } else {
@@ -510,17 +469,19 @@ class TableList extends Component<TableListProps, TableListState> {
 
   render() {
     const {
-      admin: { data },
+      menu,
+      auth: { data },
       loading,
-      form,
+      form
     } = this.props;
+
+    console.log(this.props)
 
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
 
     const parentMethods = {
       handleAdd: this.handleAdd,
-      handleModalVisible: this.handleModalVisible,
-      checkPassword: this.checkPassword,
+      handleModalVisible: this.handleModalVisible
     };
     const updateMethods = {
       handleUpdateModalVisible: this.handleUpdateModalVisible,
@@ -553,10 +514,11 @@ class TableList extends Component<TableListProps, TableListState> {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} form={form} />
+        <CreateForm {...parentMethods} list={data.list} modalVisible={modalVisible} form={form} />
         {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}
+            list={data.list}
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
             form={form}
