@@ -13,6 +13,7 @@ import {
   message,
   Divider,
   Popconfirm,
+  Tooltip,
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { SorterResult } from 'antd/es/table';
@@ -20,12 +21,12 @@ import StandardTable, { StandardTableColumnProps } from './components/StandardTa
 import { TableListItem, TableListParams, TableListPagination } from './data';
 import { Dispatch } from 'redux';
 import { IStateType as AuthType } from './model';
-import { IStateType as MenuType } from '@/pages/admin/menu-list/model'
 import styles from './style.less';
 import UpdateForm, { UpdateValsType } from './components/UpdateForm';
 import CreateForm from './components/CreateForm';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { fromatRangeDate } from '@/utils/utils';
+import LinesEllipsis from 'react-lines-ellipsis';
 
 const FormItem = Form.Item;
 const { RangePicker } = DatePicker;
@@ -38,7 +39,6 @@ interface TableListProps extends FormComponentProps {
   dispatch: Dispatch<any>;
   loading: boolean;
   auth: AuthType;
-  menu: MenuType;
 }
 
 interface TableListState {
@@ -48,17 +48,16 @@ interface TableListState {
   selectedRows: Array<TableListItem>;
   formValues: Partial<TableListParams>;
   stepFormValues: Partial<TableListItem>;
+  authByMenuList: Array<TableListItem>;
 }
 
 /* eslint react/no-multi-comp:0 */
 @connect(
   ({
     auth,
-    menu,
     loading,
   }: {
     auth: AuthType;
-    menu: MenuType;
     loading: {
       models: {
         [key: string]: boolean;
@@ -66,7 +65,6 @@ interface TableListState {
     };
   }) => ({
     auth,
-    menu,
     loading: loading.models.auth,
   }),
 )
@@ -78,31 +76,44 @@ class TableList extends Component<TableListProps, TableListState> {
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
+    authByMenuList: [],
   };
 
   columns: StandardTableColumnProps[] = [
     {
-      title: '菜单名称',
+      title: '权限名称',
+      width: 200,
       dataIndex: 'auth_name',
+    },
+    {
+      title: '描述',
+      dataIndex: 'depict',
+      width: 200,
+      render: (val: string) => {
+        return (
+          <Tooltip placement="top" title={val}>
+            <LinesEllipsis text={val} maxLine={2} ellipsis='...' />
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: '方法',
+      dataIndex: 'method',
+    },
+    {
+      title: '权限路径',
+      dataIndex: 'url',
     },
     {
       title: '序号',
       dataIndex: 'queue',
-
     },
     {
       title: '更新时间',
       dataIndex: 'update_time',
       sorter: true,
       render: (val: string) => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'create_time',
-      sorter: true,
-      render: (val: string) => {
-        return (<span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>);
-      },
     },
     {
       title: '操作',
@@ -286,33 +297,50 @@ class TableList extends Component<TableListProps, TableListState> {
     const { dispatch } = this.props;
     if (flag) {
       dispatch({
-        type: 'menu/list',
+        type: 'auth/allMenu',
         payload: {
           pageNo: 1,
-          pageSize: 20
+          pageSize: 10
         },
+        callback: (res) => {
+          this.setState({
+            modalVisible: !!flag,
+          });
+        }
+      });
+    } else {
+      this.setState({
+        authByMenuList: [],
+        modalVisible: !!flag,
       });
     }
-    this.setState({
-      modalVisible: !!flag,
-    });
   };
 
   handleUpdateModalVisible = (flag?: boolean, record?: UpdateValsType) => {
     const { dispatch } = this.props;
     if (flag) {
       dispatch({
-        type: 'menu/list',
+        type: 'auth/allMenu',
         payload: {
           pageNo: 1,
-          pageSize: 20
+          pageSize: 10
         },
+        callback: (res) => {
+          if (record) this.handleQueryByMenu(record.menu_id)
+          this.setState({
+            updateModalVisible: !!flag,
+            stepFormValues: record || {},
+          });
+        }
+      });
+    } else {
+      this.setState({
+        authByMenuList: [],
+        updateModalVisible: !!flag,
+        stepFormValues: record || {},
       });
     }
-    this.setState({
-      updateModalVisible: !!flag,
-      stepFormValues: record || {},
-    });
+
   };
 
   handleAdd = (fields, createForm) => {
@@ -359,6 +387,19 @@ class TableList extends Component<TableListProps, TableListState> {
       }
     });
   };
+
+  handleQueryByMenu = (menuId) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'auth/queryByMenu',
+      payload: { menu_id: menuId },
+      callback: res => {
+        this.setState({
+          authByMenuList: res.data
+        })
+      }
+    })
+  }
 
   renderSimpleForm() {
     const { form } = this.props;
@@ -457,36 +498,24 @@ class TableList extends Component<TableListProps, TableListState> {
     return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
   }
 
-  checkPassword = (rule, value, callback) => {
-    const { form } = this.props;
-    const password = form.getFieldValue('password');
-    if (value !== password) {
-      callback('两次输入密码不一致！');
-    } else {
-      callback();
-    }
-  };
-
   render() {
     const {
-      menu,
-      auth: { data },
+      auth: { data, menuList },
       loading,
       form
     } = this.props;
 
-    console.log(this.props)
-
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
+    const { selectedRows, modalVisible, updateModalVisible, stepFormValues, authByMenuList } = this.state;
 
     const parentMethods = {
       handleAdd: this.handleAdd,
-      handleModalVisible: this.handleModalVisible
+      handleModalVisible: this.handleModalVisible,
+      handleQueryByMenu: this.handleQueryByMenu,
     };
     const updateMethods = {
       handleUpdateModalVisible: this.handleUpdateModalVisible,
       handleUpdate: this.handleUpdate,
-      checkPassword: this.checkPassword,
+      handleQueryByMenu: this.handleQueryByMenu,
     };
     return (
       <PageHeaderWrapper>
@@ -514,11 +543,18 @@ class TableList extends Component<TableListProps, TableListState> {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} list={data.list} modalVisible={modalVisible} form={form} />
+        <CreateForm
+          {...parentMethods}
+          menuList={menuList}
+          authByMenuList={ authByMenuList }
+          modalVisible={modalVisible}
+          form={form}
+        />
         {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}
-            list={data.list}
+            menuList={menuList}
+            authByMenuList={ authByMenuList }
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
             form={form}

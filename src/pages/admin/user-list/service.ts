@@ -1,4 +1,5 @@
-import request from 'umi-request';
+// import request from 'umi-request';
+import request from '@/utils/request';
 import { TableListParams } from './data';
 
 export async function queryUserList(params: TableListParams) {
@@ -9,6 +10,13 @@ export async function queryUserList(params: TableListParams) {
 
 export async function disableUser(params) {
   return request('/admin-api/user/disable', {
+    method: 'PUT',
+    data: { ...params },
+  });
+}
+
+export async function removeUsers(params) {
+  return request('/admin-api/user/remove', {
     method: 'DELETE',
     data: { ...params },
   });

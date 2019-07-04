@@ -41,15 +41,25 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      const response = yield call(queryRoleList, payload);
-      if (response.code === 200) {
+      try {
+        const response = yield call(queryRoleList, payload);
+        if (response.code === 200) {
+          yield put({
+            type: 'save',
+            payload: response.data,
+          });
+        } else {
+          yield put({
+            type: 'save',
+          });
+          notification.error({ message: response.msg });
+        }
+      } catch (error) {
         yield put({
           type: 'save',
-          payload: response.data,
         });
-      } else {
-        notification.error({ message: response.msg });
       }
+
     },
     *add({ payload, callback }, { call }) {
       const response = yield call(addRole, payload);

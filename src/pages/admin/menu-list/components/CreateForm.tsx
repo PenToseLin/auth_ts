@@ -9,10 +9,10 @@ interface CreateFormProps extends FormComponentProps {
   modalVisible: boolean;
   handleAdd: (
     fieldsValue: {
-      username: string;
-      mobile: string;
-      password: string;
-      password_confirm: string;
+      parent_id: number;
+      menu_name: string;
+      url: string;
+      queue: string;
     },
     createForm,
   ) => void;
@@ -63,6 +63,11 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单名称">
         {form.getFieldDecorator('menu_name', {
           rules: [{ required: true, message: '菜单名称不能为空', min: 1 }],
+        })(<Input placeholder="请输入" autoComplete="false" />)}
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单路径">
+        {form.getFieldDecorator('url', {
+          rules: [{ required: true, message: '菜单路径不能为空', min: 1 }],
         })(<Input placeholder="请输入" autoComplete="false" />)}
       </FormItem>
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="序号">

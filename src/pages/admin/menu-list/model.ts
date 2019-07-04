@@ -41,18 +41,32 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      const response = yield call(queryMenuList, payload);
-      if (response.code === 200) {
+      try {
+        const response = yield call(queryMenuList, payload);
+        if (response.code === 200) {
+          yield put({
+            type: 'save',
+            payload: response.data,
+          });
+        } else {
+          notification.error({ message: response.msg });
+        }
+      } catch (error) {
         yield put({
           type: 'save',
-          payload: response.data,
+          payload: {
+            list: [],
+            pagination: {}
+          },
         });
-      } else {
-        notification.error({ message: response.msg });
       }
     },
     *add({ payload, callback }, { call }) {
       const response = yield call(addMenu, payload);
+      if (callback) callback(response);
+    },
+    *update({ payload, callback }, { call }) {
+      const response = yield call(updateMenu, payload);
       if (callback) callback(response);
     },
     *disable({ payload, callback }, { call }) {
@@ -61,10 +75,6 @@ const Model: ModelType = {
     },
     *enable({ payload, callback }, { call }) {
       const response = yield call(enableMenu, payload);
-      if (callback) callback(response);
-    },
-    *update({ payload, callback }, { call }) {
-      const response = yield call(updateMenu, payload);
       if (callback) callback(response);
     },
   },

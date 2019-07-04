@@ -2,6 +2,7 @@ export interface TableListItem {
   id: number;
   menu_name: string;
   queue: string;
+  url: string;
   parent_id: number;
   update_time: Date;
   create_time: Date;

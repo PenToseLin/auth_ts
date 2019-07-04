@@ -1,24 +1,20 @@
 import React from 'react';
-import { Input, Modal, Form, TreeSelect } from 'antd';
+import { Input, Modal, Form, TreeSelect, InputNumber } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { TableListItem } from '../data';
 
 const FormItem = Form.Item;
 
-export type UpdateValsType = {
-  password?: string;
-  password_confirm?: string;
-} & Partial<TableListItem>;
+export type UpdateValsType = {} & Partial<TableListItem>;
 
 interface UpdateFormProps extends FormComponentProps {
   updateModalVisible: boolean;
   values: Partial<TableListItem>;
   handleUpdate: (
     fieldsValue: {
-      username: string;
-      mobile: string;
-      password: string;
-      password_confirm: string;
+      id: number;
+      menu_name: string;
+      queue: string;
     },
     updateForm
   ) => void;
@@ -36,27 +32,17 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
     });
   };
 
-  const renderMenuTree = (data, disabled=false) => {
+  const renderMenuTree = (data) => {
     return data.map(item => {
       if (item.children && item.children.length > 0) {
         return (
-          <TreeSelect.TreeNode
-            value={item.id}
-            title={item.menu_name}
-            key={item.id}
-            disabled={disabled || item.id === values.id}
-          >
-            {renderMenuTree(item.children, disabled || item.id === values.id)}
+          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id}>
+            {renderMenuTree(item.children)}
           </TreeSelect.TreeNode>
         );
       } else {
         return (
-          <TreeSelect.TreeNode
-            value={item.id}
-            title={item.menu_name}
-            key={item.id}
-            disabled={disabled || item.id === values.id}
-          />
+          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id} />
         );
       }
     });
@@ -65,7 +51,7 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
   return (
     <Modal
       destroyOnClose
-      title="修改用户"
+      title="修改菜单"
       visible={updateModalVisible}
       onOk={okHandle}
       onCancel={() => handleUpdateModalVisible()}
@@ -78,7 +64,7 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级菜单">
         {form.getFieldDecorator('parent_id',{
           initialValue: values.parent_id,
-        })(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll showSearch allowClear>
+        })(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll disabled showSearch allowClear>
           {renderMenuTree(list)}
         </TreeSelect>)}
       </FormItem>
@@ -88,10 +74,16 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
           rules: [{ required: true, message: '菜单名称不能为空', min: 1 }],
         })(<Input placeholder="请输入" autoComplete="false" />)}
       </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单路径">
+        {form.getFieldDecorator('url', {
+          initialValue: values.url,
+          rules: [{ required: true, message: '菜单路径不能为空', min: 1 }],
+        })(<Input placeholder="请输入" disabled autoComplete="false" />)}
+      </FormItem>
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="序号">
         {form.getFieldDecorator('queue', {
           initialValue: values.queue,
-        })(<Input placeholder="请输入" maxLength={11} autoComplete="false" />)}
+        })(<InputNumber placeholder="请输入" />)}
       </FormItem>
     </Modal>
   );

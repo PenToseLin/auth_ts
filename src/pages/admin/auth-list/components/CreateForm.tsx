@@ -2,49 +2,66 @@ import React from 'react';
 import { Input, Modal, Form, TreeSelect, InputNumber } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { TableListItem } from '../data';
+import { TableListItem as menuItem } from '@/pages/admin/menu-list/data'
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
 
 interface CreateFormProps extends FormComponentProps {
   modalVisible: boolean;
+  authByMenuList: TableListItem[];
   handleAdd: (
     fieldsValue: {
-      username: string;
-      mobile: string;
-      password: string;
-      password_confirm: string;
+      menu_id: number;
+      parent_id: number;
+      auth_name: string;
+      queue: string;
+      depict: string;
     },
     createForm,
   ) => void;
   handleModalVisible: () => void;
-  list: TableListItem[];
+  menuList: menuItem[];
+  handleQueryByMenu: (menuId: number) => void;
 }
 
 const CreateForm: React.SFC<CreateFormProps> = props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, list } = props;
-  const okHandle = () => {
+  const {
+    modalVisible,
+    form,
+    handleAdd,
+    handleModalVisible,
+    menuList,
+    handleQueryByMenu,
+    authByMenuList
+  } = props;
 
+  const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       handleAdd(fieldsValue, form);
     });
   };
 
-  const renderMenuTree = (data) => {
+  const renderMenuTree = (data, name) => {
     return data.map(item => {
       if (item.children && item.children.length > 0) {
         return (
-          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id}>
-            {renderMenuTree(item.children)}
+          <TreeSelect.TreeNode value={item.id} title={item[name]} key={item.id}>
+            {renderMenuTree(item.children, name)}
           </TreeSelect.TreeNode>
         );
       } else {
         return (
-          <TreeSelect.TreeNode value={item.id} title={item.menu_name} key={item.id} />
+          <TreeSelect.TreeNode value={item.id} title={item[name]} key={item.id} />
         );
       }
     });
+  }
+
+  const handleSelect = menuId => {
+    console.log(menuId)
+    handleQueryByMenu(menuId)
   }
 
   return (
@@ -57,16 +74,22 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
     >
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单">
         {form.getFieldDecorator('menu_id',
-        )(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll showSearch allowClear>
-          {renderMenuTree(list)}
+        )(<TreeSelect
+          style={{ width: '100%' }}
+          treeDefaultExpandAll
+          showSearch
+          allowClear
+          onSelect={ handleSelect }
+        >
+          {renderMenuTree(menuList, 'menu_name')}
         </TreeSelect>)}
       </FormItem>
-      {/* <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级权限">
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级权限">
         {form.getFieldDecorator('parent_id',
         )(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll showSearch allowClear>
-          {renderMenuTree(list)}
+          {renderMenuTree(authByMenuList, 'auth_name')}
         </TreeSelect>)}
-      </FormItem> */}
+      </FormItem>
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="权限名称">
         {form.getFieldDecorator('auth_name', {
           rules: [{ required: true, message: '权限名称不能为空', min: 1 }],

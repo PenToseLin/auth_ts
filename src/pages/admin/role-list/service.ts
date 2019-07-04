@@ -1,4 +1,5 @@
-import request from 'umi-request';
+// import request from 'umi-request';
+import request from '@/utils/request';
 import { TableListParams } from './data';
 
 export async function queryRoleList(params: TableListParams) {

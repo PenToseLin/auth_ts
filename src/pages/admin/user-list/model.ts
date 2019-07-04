@@ -1,4 +1,4 @@
-import { queryUserList, disableUser, addUser, updateUser, enableUser } from './service';
+import { queryUserList, disableUser, addUser, updateUser, enableUser, removeUsers } from './service';
 import { TableListDate } from './data';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
@@ -23,6 +23,7 @@ export interface ModelType {
     disable: Effect;
     enable: Effect;
     update: Effect;
+    remove: Effect;
   };
   reducers: {
     save: Reducer<IStateType>;
@@ -41,18 +42,31 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      const response = yield call(queryUserList, payload);
-      if (response.code === 200) {
+      try {
+        const response = yield call(queryUserList, payload);
+        if (response.code === 200) {
+          yield put({
+            type: 'save',
+            payload: response.data,
+          });
+        } else {
+          yield put({
+            type: 'save',
+          });
+          notification.error({ message: response.msg });
+        }
+      } catch (error) {
         yield put({
           type: 'save',
-          payload: response.data,
         });
-      } else {
-        notification.error({ message: response.msg });
       }
     },
     *add({ payload, callback }, { call }) {
       const response = yield call(addUser, payload);
+      if (callback) callback(response);
+    },
+    *update({ payload, callback }, { call }) {
+      const response = yield call(updateUser, payload);
       if (callback) callback(response);
     },
     *disable({ payload, callback }, { call }) {
@@ -63,10 +77,14 @@ const Model: ModelType = {
       const response = yield call(enableUser, payload);
       if (callback) callback(response);
     },
-    *update({ payload, callback }, { call }) {
-      const response = yield call(updateUser, payload);
-      if (callback) callback(response);
-    },
+    *remove({ payload, callback }, { call }) {
+      const response = yield call(removeUsers, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
+    }
   },
 
   reducers: {

@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component, Fragment, ReactHTML } from 'react';
 import { connect } from 'dva';
 import moment from 'moment';
 import {
@@ -14,6 +14,8 @@ import {
   Badge,
   Divider,
   Popconfirm,
+  notification,
+  Modal,
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { SorterResult } from 'antd/es/table';
@@ -230,33 +232,6 @@ class TableList extends Component<TableListProps, TableListState> {
     });
   };
 
-  // handleDisable = () => {
-  //   const { dispatch } = this.props;
-  //   const { selectedRows } = this.state;
-  //   const { pagination } = this.props.admin.data;
-
-  //   if (!selectedRows) return;
-  //   dispatch({
-  //     type: 'admin/disable',
-  //     payload: {
-  //       id: selectedRows.map(row => row.id),
-  //     },
-  //     callback: (response) => {
-  //       if (response.code === 200) {
-  //         dispatch({
-  //           type: 'admin/list',
-  //           payload: {...pagination}
-  //         })
-  //         this.setState({
-  //           selectedRows: [],
-  //         });
-  //       } else {
-  //         message.error(response.msg);
-  //       }
-  //     },
-  //   });
-  // };
-
   handleDisable = (record) => {
     const { dispatch } = this.props;
     const { pagination } = this.props.admin.data;
@@ -283,8 +258,7 @@ class TableList extends Component<TableListProps, TableListState> {
   };
 
   handleEnable = (record) => {
-    const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { dispatch, admin:{data:{pagination}} } = this.props;
     const { formValues } = this.state;
     dispatch({
       type: 'admin/enable',
@@ -399,6 +373,43 @@ class TableList extends Component<TableListProps, TableListState> {
         }
       }
     });
+  };
+
+  handleRemove = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { dispatch, admin:{data:{pagination}}} = this.props;
+    const { selectedRows, formValues } = this.state;
+    const namesStr = selectedRows.map(item => item.username).join('、')
+    Modal.confirm({
+      title: '提示',
+      content: `是否删除${namesStr}`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        const id_list = selectedRows.map(item => item.id)
+        if (id_list.length === 0) {
+          notification.warning({
+            message: '提示',
+            description: '没有选择任何用户'
+          })
+          return;
+        }
+        dispatch({
+          type: 'admin/remove',
+          payload: { id_list },
+          callback: () => {
+            dispatch({
+              type: 'admin/list',
+              payload: {...pagination, ...formValues}
+            })
+            this.setState({
+              selectedRows: [],
+            });
+          }
+        })
+      }
+    })
+
   };
 
   renderSimpleForm() {
@@ -538,7 +549,7 @@ class TableList extends Component<TableListProps, TableListState> {
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button>批量操作</Button>
+                  <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>
                 </span>
               )}
             </div>

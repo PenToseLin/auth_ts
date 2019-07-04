@@ -11,7 +11,6 @@ import {
   Button,
   DatePicker,
   message,
-  Badge,
   Divider,
   Popconfirm,
 } from 'antd';
@@ -82,9 +81,12 @@ class TableList extends Component<TableListProps, TableListState> {
       dataIndex: 'menu_name',
     },
     {
+      title: '菜单路径',
+      dataIndex: 'url',
+    },
+    {
       title: '序号',
       dataIndex: 'queue',
-
     },
     {
       title: '更新时间',
