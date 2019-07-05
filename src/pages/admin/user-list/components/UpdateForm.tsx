@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Modal, Form } from 'antd';
+import { Input, Modal, Form, Transfer } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { TableListItem } from '../data';
 
@@ -40,6 +40,12 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
     });
   };
 
+  const renderRoleTransfor = () => {
+    return (
+      <h1></h1>
+    );
+  };
+
   return (
     <Modal
       destroyOnClose
@@ -78,6 +84,20 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
             { validator: checkPassword }
           ],
         })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="确认密码">
+        {form.getFieldDecorator('password_confirm', {
+          rules: [
+            { validator: checkPassword }
+          ],
+        })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="分配角色">
+        {form.getFieldDecorator('role_ids', {
+          rules: [
+            { validator: checkPassword }
+          ],
+        })(renderRoleTransfor())}
       </FormItem>
     </Modal>
   );

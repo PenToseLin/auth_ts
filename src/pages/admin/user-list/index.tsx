@@ -21,6 +21,7 @@ import { FormComponentProps } from 'antd/es/form';
 import { SorterResult } from 'antd/es/table';
 import StandardTable, { StandardTableColumnProps } from './components/StandardTable';
 import { TableListItem, TableListParams, TableListPagination } from './data';
+import { TableListItem as RoleItemType } from '@/pages/admin/role-list/data'
 import { Dispatch } from 'redux';
 import { IStateType } from './model';
 import styles from './style.less';
@@ -53,6 +54,7 @@ interface TableListState {
   selectedRows: Array<TableListItem>;
   formValues: Partial<TableListParams>;
   stepFormValues: Partial<TableListItem>;
+  allRoleList: Array<RoleItemType>;
 }
 
 /* eslint react/no-multi-comp:0 */
@@ -80,6 +82,7 @@ class TableList extends Component<TableListProps, TableListState> {
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
+    allRoleList: [],
   };
 
   columns: StandardTableColumnProps[] = [
@@ -90,7 +93,15 @@ class TableList extends Component<TableListProps, TableListState> {
     {
       title: '手机号码',
       dataIndex: 'mobile',
-
+    },
+    {
+      title: '角色',
+      dataIndex: 'roles',
+      render(roles:[]) {
+        return (
+          roles.map(item => <li>{item['role_name']}</li>)
+        );
+      }
     },
     {
       title: '状态',
@@ -329,6 +340,18 @@ class TableList extends Component<TableListProps, TableListState> {
       stepFormValues: record || {},
     });
   };
+
+  handleRoleList = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'admin/allRoleList',
+      callback: res => {
+        this.setState({
+          allRoleList: res.data
+        })
+      }
+    })
+  }
 
   handleAdd = (fields, createForm) => {
     const { dispatch } = this.props;
