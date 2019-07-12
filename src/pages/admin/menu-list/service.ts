@@ -10,6 +10,13 @@ export async function queryMenuList(params: TableListParams) {
 
 export async function disableMenu(params) {
   return request('/admin-api/menu/disable', {
+    method: 'PUT',
+    data: { ...params },
+  });
+}
+
+export async function removeMenu(params) {
+  return request('/admin-api/menu/remove', {
     method: 'DELETE',
     data: { ...params },
   });

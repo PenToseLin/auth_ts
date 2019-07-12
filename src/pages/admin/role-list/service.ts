@@ -8,8 +8,21 @@ export async function queryRoleList(params: TableListParams) {
   });
 }
 
+export async function queryAuth(params) {
+  return request(`/admin-api/auth/all`, {
+    params,
+  });
+}
+
 export async function disableRole(params) {
   return request('/admin-api/role/disable', {
+    method: 'PUT',
+    data: { ...params },
+  });
+}
+
+export async function removeRole(params) {
+  return request('/admin-api/role/remove', {
     method: 'DELETE',
     data: { ...params },
   });

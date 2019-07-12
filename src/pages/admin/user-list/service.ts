@@ -42,3 +42,11 @@ export async function updateUser(params) {
     data: { ...params },
   });
 }
+
+
+export async function queryRoles(params) {
+  return request('/admin-api/role/all', {
+    method: 'GET',
+    data: { ...params },
+  });
+}

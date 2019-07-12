@@ -1,4 +1,4 @@
-import { queryMenuList, disableMenu, addMenu, updateMenu, enableMenu } from './service';
+import { queryMenuList, disableMenu, addMenu, updateMenu, enableMenu, removeMenu } from './service';
 import { TableListDate } from './data';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
@@ -22,6 +22,7 @@ export interface ModelType {
     add: Effect;
     disable: Effect;
     enable: Effect;
+    remove: Effect;
     update: Effect;
   };
   reducers: {
@@ -63,19 +64,43 @@ const Model: ModelType = {
     },
     *add({ payload, callback }, { call }) {
       const response = yield call(addMenu, payload);
-      if (callback) callback(response);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
     *update({ payload, callback }, { call }) {
       const response = yield call(updateMenu, payload);
-      if (callback) callback(response);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
     *disable({ payload, callback }, { call }) {
       const response = yield call(disableMenu, payload);
-      if (callback) callback(response);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
     *enable({ payload, callback }, { call }) {
       const response = yield call(enableMenu, payload);
-      if (callback) callback(response);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
+    },
+    *remove({ payload, callback }, { call }) {
+      const response = yield call(removeMenu, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
   },
 

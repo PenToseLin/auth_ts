@@ -2,6 +2,8 @@ import React from 'react';
 import { Input, Modal, Form, Transfer } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { TableListItem } from '../data';
+import { TableListItem as RoleItemType } from '@/pages/admin/role-list/data'
+import { TransferItem } from 'antd/lib/transfer';
 
 const FormItem = Form.Item;
 
@@ -19,6 +21,7 @@ interface UpdateFormProps extends FormComponentProps {
       mobile: string;
       password: string;
       password_confirm: string;
+      role_ids: string[];
     },
     updateForm
   ) => void;
@@ -28,10 +31,23 @@ interface UpdateFormProps extends FormComponentProps {
     value,
     callback: () => void,
   ) => void;
+  roleList: RoleItemType[];
+  targetKeys: string[];
+  handleTargetKeys: (targetKeys) => void;
 }
 
 const UpdateForm: React.SFC<UpdateFormProps> = props => {
-  const { updateModalVisible, form, handleUpdate, handleUpdateModalVisible, checkPassword, values } = props;
+  const {
+    updateModalVisible,
+    form,
+    handleUpdate,
+    handleUpdateModalVisible,
+    checkPassword,
+    values,
+    roleList,
+    targetKeys,
+    handleTargetKeys
+  } = props;
   const okHandle = () => {
 
     form.validateFields((err, fieldsValue) => {
@@ -40,9 +56,28 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
     });
   };
 
+  const handleChange = (nextTargetKeys, direction, moveKeys) => {
+    handleTargetKeys(nextTargetKeys);
+  }
+
   const renderRoleTransfor = () => {
+
+    const dataSource:TransferItem[] = roleList.map(item => {
+      return {
+        key: `${item.id}`,
+        title: item.role_name,
+        description: item.depict,
+      }
+    });
+
     return (
-      <h1></h1>
+      <Transfer
+        dataSource={dataSource}
+        titles={['未分配角色', '已分配角色']}
+        targetKeys={targetKeys}
+        render={item => `${item.title}-${item.description}`}
+        onChange={handleChange}
+      />
     );
   };
 
@@ -50,6 +85,7 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
     <Modal
       destroyOnClose
       title="修改用户"
+      width={800}
       visible={updateModalVisible}
       onOk={okHandle}
       onCancel={() => handleUpdateModalVisible()}
@@ -85,19 +121,8 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
           ],
         })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
       </FormItem>
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="确认密码">
-        {form.getFieldDecorator('password_confirm', {
-          rules: [
-            { validator: checkPassword }
-          ],
-        })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
-      </FormItem>
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="分配角色">
-        {form.getFieldDecorator('role_ids', {
-          rules: [
-            { validator: checkPassword }
-          ],
-        })(renderRoleTransfor())}
+        {form.getFieldDecorator('role_ids')(renderRoleTransfor())}
       </FormItem>
     </Modal>
   );

@@ -13,6 +13,8 @@ import {
   message,
   Divider,
   Popconfirm,
+  Modal,
+  notification,
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { SorterResult } from 'antd/es/table';
@@ -27,7 +29,6 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { fromatRangeDate } from '@/utils/utils';
 
 const FormItem = Form.Item;
-const { RangePicker } = DatePicker;
 const getValue = (obj: { [x: string]: string[] }) =>
   Object.keys(obj)
     .map(key => obj[key])
@@ -42,7 +43,6 @@ interface TableListProps extends FormComponentProps {
 interface TableListState {
   modalVisible: boolean;
   updateModalVisible: boolean;
-  expandForm: boolean;
   selectedRows: Array<TableListItem>;
   formValues: Partial<TableListParams>;
   stepFormValues: Partial<TableListItem>;
@@ -69,7 +69,6 @@ class TableList extends Component<TableListProps, TableListState> {
   state: TableListState = {
     modalVisible: false,
     updateModalVisible: false,
-    expandForm: false,
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
@@ -108,13 +107,24 @@ class TableList extends Component<TableListProps, TableListState> {
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
           <Divider type="vertical" />
-          <Popconfirm
-            title="确认删除该菜单?"
-            onConfirm={() => this.handleDisable(record)}
-            icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-          >
-            <a style={{ color: 'red' }}>删除</a>
-          </Popconfirm>
+          {record.status === 1 &&
+            <Popconfirm
+              title="确认禁用该菜单?"
+              onConfirm={() => this.handleDisable(record)}
+              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+            >
+              <a style={{ color: 'red' }}>禁用</a>
+            </Popconfirm>
+          }
+          {record.status === 0 &&
+            <Popconfirm
+              title="确认启用该菜单?"
+              onConfirm={() => this.handleEnable(record)}
+              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+            >
+              <a style={{ color: 'green' }}>启用</a>
+            </Popconfirm>
+          }
         </Fragment>
       ),
     },
@@ -187,13 +197,6 @@ class TableList extends Component<TableListProps, TableListState> {
     });
   };
 
-  toggleForm = () => {
-    const { expandForm } = this.state;
-    this.setState({
-      expandForm: !expandForm,
-    });
-  };
-
   handleDisable = (record) => {
     const { dispatch } = this.props;
     const { pagination } = this.props.menu.data;
@@ -244,6 +247,42 @@ class TableList extends Component<TableListProps, TableListState> {
     });
   };
 
+  handleRemove = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { dispatch, menu:{data:{pagination}}} = this.props;
+    const { selectedRows, formValues } = this.state;
+    const namesStr = selectedRows.map(item => item.menu_name).join('、')
+    Modal.confirm({
+      title: '提示',
+      content: `是否删除${namesStr}`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        const id_list = selectedRows.map(item => item.id)
+        if (id_list.length === 0) {
+          notification.warning({
+            message: '提示',
+            description: '没有选择任何菜单'
+          })
+          return;
+        }
+        dispatch({
+          type: 'menu/remove',
+          payload: { id_list },
+          callback: () => {
+            dispatch({
+              type: 'menu/list',
+              payload: {...pagination, ...formValues}
+            })
+            this.setState({
+              selectedRows: [],
+            });
+          }
+        })
+      }
+    });
+  };
+
   handleSelectRows = (rows: TableListItem[]) => {
     this.setState({
       selectedRows: rows,
@@ -256,8 +295,7 @@ class TableList extends Component<TableListProps, TableListState> {
     const { dispatch, form } = this.props;
     const valueObj = form.getFieldsValue();
     const values:{ [key: string]: string } = {
-      username: valueObj.search_username,
-      mobile: valueObj.search_mobile,
+      menu_name: valueObj.search_menu_name,
     };
 
     if (valueObj.update_time && valueObj.update_time.length) {
@@ -345,13 +383,8 @@ class TableList extends Component<TableListProps, TableListState> {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="用户名称">
-              {getFieldDecorator('search_username')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="手机号码">
-              {getFieldDecorator('search_mobile')(<Input placeholder="请输入" />)}
+            <FormItem label="菜单名称">
+              {getFieldDecorator('search_menu_name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -362,9 +395,6 @@ class TableList extends Component<TableListProps, TableListState> {
               <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
                 重置
               </Button>
-              <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-                展开 <Icon type="down" />
-              </a>
             </span>
           </Col>
         </Row>
@@ -372,67 +402,8 @@ class TableList extends Component<TableListProps, TableListState> {
     );
   }
 
-  renderAdvancedForm() {
-    const {
-      form: { getFieldDecorator },
-    } = this.props;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="用户名称">
-              {getFieldDecorator('search_username')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="手机号码">
-              {getFieldDecorator('search_mobile')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="创建时间">
-                {getFieldDecorator('create_time')(
-                  <RangePicker style={{ width: '100%' }} showTime />,
-                )}
-            </FormItem>
-          </Col>
-        </Row>
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={12} sm={24}>
-            <FormItem label="更新时间">
-              {getFieldDecorator('update_time')(
-                <RangePicker style={{ width: '100%' }} showTime />,
-              )}
-            </FormItem>
-          </Col>
-          <Col md={12} sm={24}>
-            <FormItem label="最后登录时间">
-              {getFieldDecorator('last_login')(
-                <RangePicker style={{ width: '100%' }} showTime />,
-              )}
-            </FormItem>
-          </Col>
-        </Row>
-        <div style={{ overflow: 'hidden' }}>
-          <div style={{ float: 'right', marginBottom: 24 }}>
-            <Button type="primary" htmlType="submit">
-              查询
-            </Button>
-            <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-              重置
-            </Button>
-            <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-              收起 <Icon type="up" />
-            </a>
-          </div>
-        </div>
-      </Form>
-    );
-  }
-
   renderForm() {
-    const { expandForm } = this.state;
-    return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
+    return this.renderSimpleForm();
   }
 
   checkPassword = (rule, value, callback) => {
@@ -474,7 +445,7 @@ class TableList extends Component<TableListProps, TableListState> {
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button>批量操作</Button>
+                  <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>
                 </span>
               )}
             </div>

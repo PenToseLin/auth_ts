@@ -1,6 +1,8 @@
 import React from 'react';
 import { Input, Modal, Form } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
+import { TableListItem as AuthItemType } from '@/pages/admin/auth-list/data';
+import Transfer, { TransferItem } from 'antd/lib/transfer';
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
@@ -9,18 +11,20 @@ interface CreateFormProps extends FormComponentProps {
   modalVisible: boolean;
   handleAdd: (
     fieldsValue: {
-      username: string;
-      mobile: string;
-      password: string;
-      password_confirm: string;
+      role_name: string;
+      depict: string;
+      auth_ids: string[];
     },
     createForm,
   ) => void;
   handleModalVisible: () => void;
+  handleTargetKeys: (targetKeys) => void;
+  authList: AuthItemType[];
+  targetKeys: string[];
 }
 
 const CreateForm: React.SFC<CreateFormProps> = props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
+  const { modalVisible, form, handleAdd, handleModalVisible, authList, handleTargetKeys, targetKeys } = props;
   const okHandle = () => {
 
     form.validateFields((err, fieldsValue) => {
@@ -29,10 +33,37 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
     });
   };
 
+  const handleChange = (nextTargetKeys) => {
+    handleTargetKeys(nextTargetKeys);
+  }
+
+  const renderTransfor = () => {
+
+    const dataSource:TransferItem[] = authList.map(item => {
+      return {
+        key: `${item.id}`,
+        title: `${item.auth_name}-${item.menu.menu_name}`,
+        description: item.depict,
+      }
+    });
+
+    return (
+      <Transfer
+        listStyle={{ width: 210 }}
+        dataSource={dataSource}
+        titles={['未分配权限', '已分配权限']}
+        targetKeys={targetKeys}
+        render={item => `${item.title}`}
+        onChange={handleChange}
+      />
+    );
+  };
+
   return (
     <Modal
       destroyOnClose
-      title="新建用户"
+      title="新建角色"
+      width={800}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -50,6 +81,9 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
             style={{'resize': 'none'}}
           />)
         }
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="分配权限">
+        {form.getFieldDecorator('auth_ids')(renderTransfor())}
       </FormItem>
     </Modal>
   );

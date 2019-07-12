@@ -1,4 +1,4 @@
-import { queryAuthList, disableAuth, addAuth, updateAuth, enableAuth, queryAuthByMenu } from './service';
+import { queryAuthList, disableAuth, addAuth, updateAuth, enableAuth, queryAuthByMenu, removeAuth } from './service';
 import { queryMenuList } from '@/pages/admin/menu-list/service';
 import { TableListItem as menuItemType } from '@/pages/admin/menu-list/data'
 import { TableListDate } from './data';
@@ -26,6 +26,7 @@ export interface ModelType {
     disable: Effect;
     enable: Effect;
     update: Effect;
+    remove: Effect;
     allMenu: Effect;
     queryByMenu: Effect;
   };
@@ -88,6 +89,14 @@ const Model: ModelType = {
       const response = yield call(enableAuth, payload);
       if (callback) callback(response);
     },
+    *remove({ payload, callback }, { call }) {
+      const response = yield call(removeAuth, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
+    },
     *update({ payload, callback }, { call }) {
       const response = yield call(updateAuth, payload);
       if (callback) callback(response);
@@ -95,15 +104,14 @@ const Model: ModelType = {
     *allMenu({ payload, callback }, { put, call }) {
       const response = yield call(queryMenuList, payload);
       if (response.code === 200) {
-        console.log('response.code: ', response.code);
         yield put({
           type: 'saveMenu',
           payload: response.data.list,
         });
+        if (callback) callback(response);
       } else {
         notification.error({ message: response.msg });
       }
-      if (callback) callback(response);
     }
   },
 

@@ -14,11 +14,14 @@ import {
   Divider,
   Popconfirm,
   Tooltip,
+  notification,
+  Modal,
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { SorterResult } from 'antd/es/table';
 import StandardTable, { StandardTableColumnProps } from './components/StandardTable';
 import { TableListItem, TableListParams, TableListPagination } from './data';
+import { TableListItem as AuthItemType } from '@/pages/admin/auth-list/data';
 import { Dispatch } from 'redux';
 import { IStateType } from './model';
 import styles from './style.less';
@@ -49,6 +52,8 @@ interface TableListState {
   selectedRows: Array<TableListItem>;
   formValues: Partial<TableListParams>;
   stepFormValues: Partial<TableListItem>;
+  authList: Array<AuthItemType>;
+  targetKeys: Array<string>;
 }
 
 /* eslint react/no-multi-comp:0 */
@@ -75,6 +80,8 @@ class TableList extends Component<TableListProps, TableListState> {
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
+    authList: [],
+    targetKeys: [],
   };
 
   columns: StandardTableColumnProps[] = [
@@ -130,17 +137,26 @@ class TableList extends Component<TableListProps, TableListState> {
       render: (text, record) => (
         <Fragment>
           { record.is_root === 0 &&
-            <div>
-              <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-              <Divider type="vertical" />
-              <Popconfirm
-                title="确认删除该角色?"
-                onConfirm={() => this.handleRemove(record)}
-                icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-              >
-                <a style={{ color: 'red' }}>删除</a>
-              </Popconfirm>
-            </div>
+            <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
+          }
+          <Divider type="vertical" />
+          {record.status === 1 && record.is_root === 0 &&
+            <Popconfirm
+              title="确认禁用该用户?"
+              onConfirm={() => this.handleDisable(record)}
+              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+            >
+              <a style={{ color: 'red' }}>禁用</a>
+            </Popconfirm>
+          }
+          {record.status === 0 && record.is_root === 0 &&
+            <Popconfirm
+              title="确认启用该用户?"
+              onConfirm={() => this.handleEnable(record)}
+              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+            >
+              <a style={{ color: 'green' }}>启用</a>
+            </Popconfirm>
           }
         </Fragment>
       ),
@@ -214,7 +230,7 @@ class TableList extends Component<TableListProps, TableListState> {
     });
   };
 
-  handleRemove = (record) => {
+  handleDisable = (record) => {
     const { dispatch } = this.props;
     const { pagination } = this.props.role.data;
     const { formValues } = this.state;
@@ -236,6 +252,67 @@ class TableList extends Component<TableListProps, TableListState> {
           message.error(response.msg);
         }
       },
+    });
+  };
+
+  handleEnable = (record) => {
+    const { dispatch } = this.props;
+    const { pagination } = this.props.role.data;
+    const { formValues } = this.state;
+    dispatch({
+      type: 'role/enable',
+      payload: {
+        id: record.id,
+      },
+      callback: (response) => {
+        if (response.code === 200) {
+          dispatch({
+            type: 'role/list',
+            payload: {...pagination, ...formValues}
+          })
+          this.setState({
+            selectedRows: [],
+          });
+        } else {
+          message.error(response.msg);
+        }
+      },
+    });
+  };
+
+  handleRemove = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { dispatch, role:{data:{pagination}}} = this.props;
+    const { selectedRows, formValues } = this.state;
+    const namesStr = selectedRows.map(item => item.role_name).join('、')
+    Modal.confirm({
+      title: '提示',
+      content: `是否删除${namesStr}`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        const id_list = selectedRows.map(item => item.id)
+        if (id_list.length === 0) {
+          notification.warning({
+            message: '提示',
+            description: '没有选择任何角色'
+          })
+          return;
+        }
+        dispatch({
+          type: 'role/remove',
+          payload: { id_list },
+          callback: () => {
+            dispatch({
+              type: 'role/list',
+              payload: {...pagination, ...formValues}
+            })
+            this.setState({
+              selectedRows: [],
+            });
+          }
+        })
+      }
     });
   };
 
@@ -265,16 +342,55 @@ class TableList extends Component<TableListProps, TableListState> {
   };
 
   handleModalVisible = (flag?: boolean) => {
-    this.setState({
-      modalVisible: !!flag,
-    });
+    const { dispatch } = this.props;
+    if (flag) {
+      dispatch({
+        type: 'role/queryAuth',
+        callback: res => {
+          this.setState({
+            modalVisible: !!flag,
+            authList: res.data,
+            targetKeys: [],
+          });
+        }
+      })
+    } else {
+      this.setState({
+        modalVisible: !!flag,
+        authList: [],
+        targetKeys: [],
+      });
+    }
   };
 
   handleUpdateModalVisible = (flag?: boolean, record?: UpdateValsType) => {
-    this.setState({
-      updateModalVisible: !!flag,
-      stepFormValues: record || {},
-    });
+    const { dispatch } = this.props;
+    if (flag) {
+      let targetKeys:string[] = [];
+      if (record && record.auth_list) targetKeys = record.auth_list.map(item => `${item.id}`);
+      dispatch({
+        type: 'role/queryAuth',
+        callback: res => {
+          this.setState({
+            updateModalVisible: !!flag,
+            stepFormValues: record || {},
+            authList: res.data,
+            targetKeys,
+          });
+        }
+      })
+    } else {
+      this.setState({
+        updateModalVisible: !!flag,
+        stepFormValues: record || {},
+        authList: [],
+        targetKeys: [],
+      });
+    }
+  };
+
+  handleTargetKeys = (targetKeys) => {
+    this.setState({ targetKeys });
   };
 
   handleAdd = (fields, createForm) => {
@@ -360,15 +476,17 @@ class TableList extends Component<TableListProps, TableListState> {
       form,
     } = this.props;
 
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
+    const { selectedRows, modalVisible, updateModalVisible, stepFormValues, authList, targetKeys } = this.state;
 
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
+      handleTargetKeys: this.handleTargetKeys,
     };
     const updateMethods = {
       handleUpdateModalVisible: this.handleUpdateModalVisible,
       handleUpdate: this.handleUpdate,
+      handleTargetKeys: this.handleTargetKeys,
     };
     return (
       <PageHeaderWrapper>
@@ -381,7 +499,7 @@ class TableList extends Component<TableListProps, TableListState> {
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button>批量操作</Button>
+                  <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>
                 </span>
               )}
             </div>
@@ -396,10 +514,18 @@ class TableList extends Component<TableListProps, TableListState> {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} form={form} />
+        <CreateForm
+          {...parentMethods}
+          authList={authList}
+          targetKeys={targetKeys}
+          modalVisible={modalVisible}
+          form={form}
+        />
         {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}
+            authList={authList}
+            targetKeys={targetKeys}
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
             form={form}

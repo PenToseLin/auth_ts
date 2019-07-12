@@ -4,6 +4,7 @@ export interface TableListItem {
   queue: string;
   url: string;
   parent_id: number;
+  status: number;
   update_time: Date;
   create_time: Date;
 }

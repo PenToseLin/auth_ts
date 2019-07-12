@@ -1,4 +1,12 @@
-import { queryUserList, disableUser, addUser, updateUser, enableUser, removeUsers } from './service';
+import {
+  queryUserList,
+  disableUser,
+  addUser,
+  updateUser,
+  enableUser,
+  removeUsers,
+  queryRoles
+} from './service';
 import { TableListDate } from './data';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
@@ -24,6 +32,7 @@ export interface ModelType {
     enable: Effect;
     update: Effect;
     remove: Effect;
+    queryRoles: Effect;
   };
   reducers: {
     save: Reducer<IStateType>;
@@ -79,6 +88,14 @@ const Model: ModelType = {
     },
     *remove({ payload, callback }, { call }) {
       const response = yield call(removeUsers, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
+    },
+    *queryRoles({ payload, callback }, { call }) {
+      const response = yield call(queryRoles, payload);
       if (response.code === 200) {
         if (callback) callback(response);
       } else {

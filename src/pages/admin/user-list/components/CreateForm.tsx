@@ -1,6 +1,8 @@
 import React from 'react';
 import { Input, Modal, Form } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
+import { TableListItem as RoleItemType } from '@/pages/admin/role-list/data'
+import Transfer, { TransferItem } from 'antd/lib/transfer';
 
 const FormItem = Form.Item;
 
@@ -21,10 +23,22 @@ interface CreateFormProps extends FormComponentProps {
     value,
     callback: () => void,
   ) => void;
+  roleList: RoleItemType[];
+  targetKeys: string[];
+  handleTargetKeys: (targetKeys) => void;
 }
 
 const CreateForm: React.SFC<CreateFormProps> = props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, checkPassword } = props;
+  const {
+    modalVisible,
+    form,
+    handleAdd,
+    handleModalVisible,
+    checkPassword,
+    handleTargetKeys,
+    targetKeys,
+    roleList
+  } = props;
   const okHandle = () => {
 
     form.validateFields((err, fieldsValue) => {
@@ -33,10 +47,36 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
     });
   };
 
+  const handleChange = (nextTargetKeys) => {
+    handleTargetKeys(nextTargetKeys);
+  }
+
+  const renderRoleTransfor = () => {
+
+    const dataSource:TransferItem[] = roleList.map(item => {
+      return {
+        key: `${item.id}`,
+        title: item.role_name,
+        description: item.depict,
+      }
+    });
+
+    return (
+      <Transfer
+        dataSource={dataSource}
+        titles={['未分配角色', '已分配角色']}
+        targetKeys={targetKeys}
+        render={item => `${item.title}-${item.description}`}
+        onChange={handleChange}
+      />
+    );
+  };
+
   return (
     <Modal
       destroyOnClose
       title="新建用户"
+      width={800}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -65,6 +105,9 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
             { validator: checkPassword }
           ],
         })(<Input placeholder="请输入" autoComplete="false" type="password" />)}
+      </FormItem>
+      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="分配角色">
+        {form.getFieldDecorator('role_ids')(renderRoleTransfor())}
       </FormItem>
     </Modal>
   );

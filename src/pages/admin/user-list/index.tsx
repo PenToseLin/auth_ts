@@ -54,7 +54,8 @@ interface TableListState {
   selectedRows: Array<TableListItem>;
   formValues: Partial<TableListParams>;
   stepFormValues: Partial<TableListItem>;
-  allRoleList: Array<RoleItemType>;
+  roleList: Array<RoleItemType>;
+  targetKeys: string[];
 }
 
 /* eslint react/no-multi-comp:0 */
@@ -82,7 +83,8 @@ class TableList extends Component<TableListProps, TableListState> {
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
-    allRoleList: [],
+    roleList: [],
+    targetKeys: [],
   };
 
   columns: StandardTableColumnProps[] = [
@@ -99,7 +101,7 @@ class TableList extends Component<TableListProps, TableListState> {
       dataIndex: 'roles',
       render(roles:[]) {
         return (
-          roles.map(item => <li>{item['role_name']}</li>)
+          roles.map((item: RoleItemType) => <li key={item.id}>{item.role_name}</li>)
         );
       }
     },
@@ -329,29 +331,51 @@ class TableList extends Component<TableListProps, TableListState> {
   };
 
   handleModalVisible = (flag?: boolean) => {
-    this.setState({
-      modalVisible: !!flag,
-    });
+    const { dispatch } = this.props;
+    if (flag) {
+      dispatch({
+        type: 'admin/queryRoles',
+        callback: (res) => {
+          this.setState({ roleList: res.data });
+          this.setState({
+            modalVisible: !!flag,
+          });
+        }
+      });
+    } else {
+      this.setState({
+        modalVisible: !!flag,
+        roleList: [],
+        targetKeys: [],
+      });
+    }
   };
 
   handleUpdateModalVisible = (flag?: boolean, record?: UpdateValsType) => {
-    this.setState({
-      updateModalVisible: !!flag,
-      stepFormValues: record || {},
-    });
-  };
-
-  handleRoleList = () => {
     const { dispatch } = this.props;
-    dispatch({
-      type: 'admin/allRoleList',
-      callback: res => {
-        this.setState({
-          allRoleList: res.data
-        })
-      }
-    })
-  }
+    if (flag) {
+      let keys:string[] = []
+      if (record && record.roles) keys = record.roles.map(item => `${item.id}`)
+      dispatch({
+        type: 'admin/queryRoles',
+        callback: (res) => {
+          this.setState({
+            updateModalVisible: !!flag,
+            stepFormValues: record || {},
+            roleList: res.data,
+            targetKeys: keys,
+          });
+        }
+      });
+    } else {
+      this.setState({
+        updateModalVisible: !!flag,
+        stepFormValues: record || {},
+        roleList: [],
+        targetKeys: [],
+      });
+    }
+  };
 
   handleAdd = (fields, createForm) => {
     const { dispatch } = this.props;
@@ -431,8 +455,7 @@ class TableList extends Component<TableListProps, TableListState> {
           }
         })
       }
-    })
-
+    });
   };
 
   renderSimpleForm() {
@@ -542,6 +565,10 @@ class TableList extends Component<TableListProps, TableListState> {
     }
   };
 
+  handleTargetKeys = (targetKeys) => {
+    this.setState({ targetKeys });
+  };
+
   render() {
     const {
       admin: { data },
@@ -549,17 +576,26 @@ class TableList extends Component<TableListProps, TableListState> {
       form,
     } = this.props;
 
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
+    const {
+      selectedRows,
+      modalVisible,
+      updateModalVisible,
+      stepFormValues,
+      roleList,
+      targetKeys
+    } = this.state;
 
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
       checkPassword: this.checkPassword,
+      handleTargetKeys: this.handleTargetKeys,
     };
     const updateMethods = {
       handleUpdateModalVisible: this.handleUpdateModalVisible,
       handleUpdate: this.handleUpdate,
       checkPassword: this.checkPassword,
+      handleTargetKeys: this.handleTargetKeys,
     };
     return (
       <PageHeaderWrapper>
@@ -587,10 +623,12 @@ class TableList extends Component<TableListProps, TableListState> {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} form={form} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible} roleList={roleList} targetKeys={targetKeys} form={form} />
         {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}
+            roleList={roleList}
+            targetKeys={targetKeys}
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
             form={form}

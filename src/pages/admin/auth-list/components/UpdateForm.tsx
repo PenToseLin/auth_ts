@@ -82,7 +82,7 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
       </FormItem>
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="菜单">
         {form.getFieldDecorator('menu_id',{
-          initialValue: values.menu_id,
+          initialValue: values.menu ? values.menu.id : '',
         })(<TreeSelect
           style={{ width: '100%' }}
           treeDefaultExpandAll

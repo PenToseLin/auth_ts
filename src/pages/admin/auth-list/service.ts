@@ -16,7 +16,7 @@ export async function queryAuthByMenu(params) {
 
 export async function disableAuth(params) {
   return request('/admin-api/auth/disable', {
-    method: 'DELETE',
+    method: 'PUT',
     data: { ...params },
   });
 }
@@ -24,6 +24,13 @@ export async function disableAuth(params) {
 export async function enableAuth(params) {
   return request('/admin-api/auth/enable', {
     method: 'PUT',
+    data: { ...params },
+  });
+}
+
+export async function removeAuth(params) {
+  return request('/admin-api/auth/remove', {
+    method: 'DELETE',
     data: { ...params },
   });
 }

@@ -1,4 +1,4 @@
-import { queryRoleList, disableRole, addRole, updateRole, enableRole } from './service';
+import { queryRoleList, disableRole, addRole, updateRole, enableRole, queryAuth, removeRole } from './service';
 import { TableListDate } from './data';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
@@ -23,6 +23,8 @@ export interface ModelType {
     disable: Effect;
     enable: Effect;
     update: Effect;
+    remove: Effect;
+    queryAuth: Effect;
   };
   reducers: {
     save: Reducer<IStateType>;
@@ -49,15 +51,11 @@ const Model: ModelType = {
             payload: response.data,
           });
         } else {
-          yield put({
-            type: 'save',
-          });
+          yield put({ type: 'save' });
           notification.error({ message: response.msg });
         }
       } catch (error) {
-        yield put({
-          type: 'save',
-        });
+        yield put({ type: 'save' });
       }
 
     },
@@ -73,9 +71,25 @@ const Model: ModelType = {
       const response = yield call(enableRole, payload);
       if (callback) callback(response);
     },
+    *remove({ payload, callback }, { call }) {
+      const response = yield call(removeRole, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
+    },
     *update({ payload, callback }, { call }) {
       const response = yield call(updateRole, payload);
       if (callback) callback(response);
+    },
+    *queryAuth({ payload, callback }, { call }) {
+      const response = yield call(queryAuth, payload);
+      if (response.code === 200) {
+        if (callback) callback(response);
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
   },
 
