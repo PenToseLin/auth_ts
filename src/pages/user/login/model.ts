@@ -4,6 +4,9 @@ import { fakeAccountLogin, getFakeCaptcha } from './service';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { AnyAction } from 'redux';
+import { notification } from 'antd';
+import { reloadAuthorized } from '@/utils/Authorized';
+import { getAuthority } from '@/utils/authority';
 
 export interface IStateType {
   status?: 'ok' | 'error';
@@ -22,6 +25,7 @@ export interface ModelType {
   effects: {
     login: Effect;
     getCaptcha: Effect;
+    isLogin: Effect;
   };
   reducers: {
     changeLoginStatus: Reducer<IStateType>;
@@ -38,12 +42,17 @@ const Model: ModelType = {
   effects: {
     *login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
-      yield put({
-        type: 'changeLoginStatus',
-        payload: response,
-      });
       // Login successfully
-      if (response.status === 'ok') {
+      if (response.code === 200) {
+        yield put({
+          type: 'changeLoginStatus',
+          payload: {
+            ...response.data,
+            code: response.code,
+            type: payload.type
+          },
+        });
+        reloadAuthorized();
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params as { redirect: string };
@@ -60,20 +69,28 @@ const Model: ModelType = {
           }
         }
         yield put(routerRedux.replace(redirect || '/'));
+      } else {
+        notification.error({ message: response.msg });
       }
     },
-
     *getCaptcha({ payload }, { call }) {
       yield call(getFakeCaptcha, payload);
+    },
+    *isLogin(_, { put }) {
+      const auth_list = yield getAuthority();
+      if (auth_list.length > 0) {
+        reloadAuthorized();
+        yield put(routerRedux.replace('/'));
+      }
     },
   },
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
+      setAuthority(payload.auth_list);
       return {
         ...state,
-        status: payload.status,
+        status: payload.code === 200 ? 'ok' : 'error',
         type: payload.type,
       };
     },

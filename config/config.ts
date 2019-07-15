@@ -131,7 +131,7 @@ export default {
           path: '/',
           component: '../layouts/BasicLayout',
           Routes: ['src/pages/Authorized'],
-          authority: ['admin', 'user'],
+          authority: ['admin:admin'],
           routes: [
             {
               path: '/dashboard',
@@ -323,34 +323,40 @@ export default {
             {
               path: '/admin',
               icon: 'user',
+              Routes: ['src/pages/Authorized'],
+              authority: ['admin:admin'],
               name: 'admin',
               routes: [
                 {
                   name: 'user-list',
                   path: '/admin/user-list',
+                  authority: ['admin:user:list'],
                   component: './admin/user-list',
                 },
                 {
                   name: 'role-list',
                   path: '/admin/role-list',
+                  authority: ['admin:role:list'],
                   component: './admin/role-list',
                 },
                 {
                   name: 'auth-list',
                   path: '/admin/auth-list',
+                  authority: ['admin:auth:list'],
                   component: './admin/auth-list',
                 },
                 {
                   name: 'menu-list',
                   path: '/admin/menu-list',
+                  authority: ['admin:menu:list'],
                   component: './admin/menu-list',
                 },
               ],
             },
             {
               path: '/',
-              redirect: '/admin/user-list',
-              authority: ['admin', 'user'],
+              redirect: '/dashboard/analysis',
+              authority: ['admin:admin'],
             },
           ],
         },

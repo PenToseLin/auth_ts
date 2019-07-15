@@ -1,10 +1,12 @@
 import { query as queryUsers, queryCurrent } from '@/services/user';
 import { Effect } from 'dva';
 import { Reducer } from 'redux';
+import { notification } from 'antd';
+import { setAuthority } from '@/pages/user/login/utils/utils';
 
 export interface CurrentUser {
   avatar?: string;
-  name?: string;
+  username?: string;
   title?: string;
   group?: string;
   signature?: string;
@@ -48,20 +50,25 @@ const UserModel: UserModelType = {
         payload: response,
       });
     },
-    *fetchCurrent(_, { call, put }) {
-      const response = yield call(queryCurrent);
-      yield put({
-        type: 'saveCurrentUser',
-        payload: response,
-      });
+    *fetchCurrent({ payload }, { call, put }) {
+      const response = yield call(queryCurrent, payload);
+      if (response.code === 200) {
+        yield put({
+          type: 'saveCurrentUser',
+          payload: response.data,
+        });
+      } else {
+        notification.error({ message: response.msg });
+      }
     },
   },
 
   reducers: {
-    saveCurrentUser(state, action) {
+    saveCurrentUser(state, { payload }) {
+      setAuthority(payload.auth_list)
       return {
         ...state,
-        currentUser: action.payload || {},
+        currentUser: payload.user_info || {},
       };
     },
     changeNotifyCount(

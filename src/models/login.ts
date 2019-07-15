@@ -2,6 +2,7 @@ import { routerRedux } from 'dva/router';
 import { Reducer, AnyAction } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { stringify, parse } from 'qs';
+import { setAuthority } from '@/pages/user/login/utils/utils';
 
 export function getPageQuery() {
   return parse(window.location.href.split('?')[1]);
@@ -33,6 +34,7 @@ const Model: ModelType = {
   effects: {
     *logout(_, { put }) {
       const { redirect } = getPageQuery();
+      setAuthority([]);
       // redirect
       if (window.location.pathname !== '/user/login' && !redirect) {
         yield put(

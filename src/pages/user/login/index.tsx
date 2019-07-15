@@ -54,6 +54,13 @@ class Login extends Component<
   };
   loginForm: FormComponentProps['form'] | undefined | null;
 
+  componentWillMount = () => {
+    const { dispatch } = this.props;
+      dispatch({
+        type: 'userLogin/isLogin',
+      });
+  }
+
   onTabChange = (type: string) => {
     this.setState({ type });
   };
