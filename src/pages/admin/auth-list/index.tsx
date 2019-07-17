@@ -28,6 +28,7 @@ import CreateForm from './components/CreateForm';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { fromatRangeDate } from '@/utils/utils';
 import LinesEllipsis from 'react-lines-ellipsis';
+import Authorized from '@/components/Authorized/Authorized';
 
 const FormItem = Form.Item;
 const getValue = (obj: { [x: string]: string[] }) =>
@@ -121,26 +122,28 @@ class TableList extends Component<TableListProps, TableListState> {
       title: '操作',
       render: (text, record) => (
         <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-          <Divider type="vertical" />
-          {record.status === 1 &&
-            <Popconfirm
-              title="确认禁用该权限?"
-              onConfirm={() => this.handleDisable(record)}
-              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-            >
-              <a style={{ color: 'red' }}>禁用</a>
-            </Popconfirm>
-          }
-          {record.status === 0 &&
-            <Popconfirm
-              title="确认启用该权限?"
-              onConfirm={() => this.handleEnable(record)}
-              icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
-            >
-              <a style={{ color: 'green' }}>启用</a>
-            </Popconfirm>
-          }
+          <Authorized authority="admin:auth:update">
+            <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
+            <Divider type="vertical" />
+            {record.status === 1 &&
+              <Popconfirm
+                title="确认禁用该权限?"
+                onConfirm={() => this.handleDisable(record)}
+                icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+              >
+                <a style={{ color: 'red' }}>禁用</a>
+              </Popconfirm>
+            }
+            {record.status === 0 &&
+              <Popconfirm
+                title="确认启用该权限?"
+                onConfirm={() => this.handleEnable(record)}
+                icon={<Icon type="question-circle-o" style={{ color: 'red' }} />}
+              >
+                <a style={{ color: 'green' }}>启用</a>
+              </Popconfirm>
+            }
+          </Authorized>
         </Fragment>
       ),
     },
@@ -503,14 +506,18 @@ class TableList extends Component<TableListProps, TableListState> {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
-                新建
-              </Button>
-              {selectedRows.length > 0 && (
-                <span>
-                  <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>
-                </span>
-              )}
+              <Authorized authority="admin:auth:add">
+                <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+                  新建
+                </Button>
+              </Authorized>
+              <Authorized authority="admin:auth:delete">
+                {selectedRows.length > 0 && (
+                  <span>
+                    <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>
+                  </span>
+                )}
+              </Authorized>
             </div>
             <StandardTable
               rowKey="id"
