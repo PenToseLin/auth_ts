@@ -387,17 +387,13 @@ class TableList extends Component<TableListProps, TableListState> {
       type: 'admin/add',
       payload: {...fields},
       callback: (response) => {
-        if (response.code === 200) {
-          message.success("添加成功");
-          this.handleModalVisible();
-          createForm.resetFields();
-          dispatch({
-            type: 'admin/list',
-            payload: {...pagination},
-          });
-        } else {
-          message.error(response.msg);
-        }
+        message.success("添加成功");
+        this.handleModalVisible();
+        createForm.resetFields();
+        dispatch({
+          type: 'admin/list',
+          payload: {...pagination},
+        });
       }
     });
 

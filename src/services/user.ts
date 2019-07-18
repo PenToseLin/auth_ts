@@ -6,6 +6,7 @@ export async function query(): Promise<any> {
 
 export async function queryCurrent(params): Promise<any> {
   return request('/admin-api/current_user', {
+    headers: {'access_token': '',},
     params,
   });
 }

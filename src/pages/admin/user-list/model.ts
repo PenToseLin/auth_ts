@@ -51,28 +51,19 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      try {
-        const response = yield call(queryUserList, payload);
-        if (response.code === 200) {
-          yield put({
-            type: 'save',
-            payload: response.data,
-          });
-        } else {
-          yield put({
-            type: 'save',
-          });
-          notification.error({ message: response.msg });
-        }
-      } catch (error) {
+      const response = yield call(queryUserList, payload);
+      if (response.code && response.code === 200) {
         yield put({
           type: 'save',
+          payload: response.data,
         });
       }
     },
     *add({ payload, callback }, { call }) {
       const response = yield call(addUser, payload);
-      if (callback) callback(response);
+      if (response.code && response.code === 200) {
+        if (callback) callback(response);
+      }
     },
     *update({ payload, callback }, { call }) {
       const response = yield call(updateUser, payload);
@@ -88,19 +79,11 @@ const Model: ModelType = {
     },
     *remove({ payload, callback }, { call }) {
       const response = yield call(removeUsers, payload);
-      if (response.code === 200) {
-        if (callback) callback(response);
-      } else {
-        notification.error({ message: response.msg });
-      }
+      if (callback) callback(response);
     },
     *queryRoles({ payload, callback }, { call }) {
       const response = yield call(queryRoles, payload);
-      if (response.code === 200) {
-        if (callback) callback(response);
-      } else {
-        notification.error({ message: response.msg });
-      }
+      if (callback) callback(response);
     }
   },
 

@@ -86,6 +86,7 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
       destroyOnClose
       title="修改用户"
       width={800}
+      maskClosable={false}
       visible={updateModalVisible}
       onOk={okHandle}
       onCancel={() => handleUpdateModalVisible()}

@@ -77,6 +77,7 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
       destroyOnClose
       title="新建用户"
       width={800}
+      maskClosable={false}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -101,7 +102,7 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="确认密码">
         {form.getFieldDecorator('password_confirm', {
           rules: [
-            { required: true },
+            { required: true, message: '确认密码不能为空' },
             { validator: checkPassword }
           ],
         })(<Input placeholder="请输入" autoComplete="false" type="password" />)}

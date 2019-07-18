@@ -25,7 +25,6 @@ export interface ModelType {
   effects: {
     login: Effect;
     getCaptcha: Effect;
-    isLogin: Effect;
   };
   reducers: {
     changeLoginStatus: Reducer<IStateType>;
@@ -76,18 +75,12 @@ const Model: ModelType = {
     *getCaptcha({ payload }, { call }) {
       yield call(getFakeCaptcha, payload);
     },
-    *isLogin(_, { put }) {
-      const auth_list = yield getAuthority();
-      if (auth_list.length > 0) {
-        reloadAuthorized();
-        yield put(routerRedux.replace('/'));
-      }
-    },
   },
 
   reducers: {
     changeLoginStatus(state, { payload }) {
       setAuthority(payload.auth_list);
+      localStorage.setItem('access_token', payload.access_token)
       return {
         ...state,
         status: payload.code === 200 ? 'ok' : 'error',

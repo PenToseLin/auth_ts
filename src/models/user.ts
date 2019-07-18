@@ -52,13 +52,11 @@ const UserModel: UserModelType = {
     },
     *fetchCurrent({ payload }, { call, put }) {
       const response = yield call(queryCurrent, payload);
-      if (response.code === 200) {
+      if (response.code && response.code === 200) {
         yield put({
           type: 'saveCurrentUser',
           payload: response.data,
         });
-      } else {
-        notification.error({ message: response.msg });
       }
     },
   },
