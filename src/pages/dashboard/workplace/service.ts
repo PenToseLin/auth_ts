@@ -1,4 +1,5 @@
-import request from 'umi-request';
+// import request from 'umi-request';
+import request from '@/utils/request.axios';
 
 export async function queryProjectNotice() {
   return request('/api/project/notice');

@@ -72,11 +72,13 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
 
     return (
       <Transfer
+        listStyle={{ width: 210, height: 300, }}
         dataSource={dataSource}
         titles={['未分配角色', '已分配角色']}
         targetKeys={targetKeys}
         render={item => `${item.title}-${item.description}`}
         onChange={handleChange}
+        showSearch
       />
     );
   };

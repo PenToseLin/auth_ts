@@ -131,7 +131,12 @@ export default {
           path: '/',
           component: '../layouts/BasicLayout',
           Routes: ['src/pages/Authorized'],
-          authority: ['admin:admin'],
+          authority: [
+            'admin:manage:user:list',
+            'admin:manage:role:list',
+            'admin:manage:auth:list',
+            'admin:manage:menu:list',
+          ],
           routes: [
             {
               path: '/dashboard',
@@ -324,31 +329,36 @@ export default {
               path: '/admin',
               icon: 'user',
               Routes: ['src/pages/Authorized'],
-              authority: ['admin:admin'],
+              authority: [
+                'admin:manage:user:list',
+                'admin:manage:role:list',
+                'admin:manage:auth:list',
+                'admin:manage:menu:list',
+              ],
               name: 'admin',
               routes: [
                 {
                   name: 'user-list',
                   path: '/admin/user-list',
-                  authority: ['admin:user:list'],
+                  authority: ['admin:manage:user:list'],
                   component: './admin/user-list',
                 },
                 {
                   name: 'role-list',
                   path: '/admin/role-list',
-                  authority: ['admin:role:list'],
+                  authority: ['admin:manage:role:list'],
                   component: './admin/role-list',
                 },
                 {
                   name: 'auth-list',
                   path: '/admin/auth-list',
-                  authority: ['admin:auth:list'],
+                  authority: ['admin:manage:auth:list'],
                   component: './admin/auth-list',
                 },
                 {
                   name: 'menu-list',
                   path: '/admin/menu-list',
-                  authority: ['admin:menu:list'],
+                  authority: ['admin:manage:menu:list'],
                   component: './admin/menu-list',
                 },
               ],
@@ -356,7 +366,12 @@ export default {
             {
               path: '/',
               redirect: '/dashboard/analysis',
-              authority: ['admin:admin'],
+              authority: [
+                'admin:manage:user:list',
+                'admin:manage:role:list',
+                'admin:manage:auth:list',
+                'admin:manage:menu:list',
+              ],
             },
           ],
         },

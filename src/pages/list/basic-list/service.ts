@@ -1,4 +1,5 @@
-import request from 'umi-request';
+// import request from 'umi-request';
+import request from '@/utils/request.axios';
 import { BasicListItemDataType } from './data';
 
 interface ParamsType extends Partial<BasicListItemDataType> {

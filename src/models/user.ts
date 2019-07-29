@@ -1,7 +1,6 @@
 import { query as queryUsers, queryCurrent } from '@/services/user';
 import { Effect } from 'dva';
 import { Reducer } from 'redux';
-import { notification } from 'antd';
 import { setAuthority } from '@/pages/user/login/utils/utils';
 
 export interface CurrentUser {

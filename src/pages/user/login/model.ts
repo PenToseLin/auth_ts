@@ -80,7 +80,8 @@ const Model: ModelType = {
   reducers: {
     changeLoginStatus(state, { payload }) {
       setAuthority(payload.auth_list);
-      localStorage.setItem('access_token', payload.access_token)
+      localStorage.setItem('access_token', payload.access_token);
+      localStorage.setItem('refresh_token', payload.refresh_token);
       return {
         ...state,
         status: payload.code === 200 ? 'ok' : 'error',

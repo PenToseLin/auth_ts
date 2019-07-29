@@ -45,7 +45,7 @@ const status = ['禁用', '启用']
 interface TableListProps extends FormComponentProps {
   dispatch: Dispatch<any>;
   loading: boolean;
-  admin: IStateType;
+  userManage: IStateType;
 }
 
 interface TableListState {
@@ -62,17 +62,17 @@ interface TableListState {
 /* eslint react/no-multi-comp:0 */
 @connect(
   ({
-    admin,
+    userManage,
     loading,
   }: {
-    admin: IStateType;
+    userManage: IStateType;
     loading: {
       models: {
         [key: string]: boolean;
       };
     };
   }) => ({
-    admin,
+    userManage,
     loading: loading.models.admin,
   }),
 )
@@ -147,9 +147,12 @@ class TableList extends Component<TableListProps, TableListState> {
       title: '操作',
       render: (text, record) => (
         <Fragment>
-          <Authorized authority="admin:user:update">
+          <Authorized authority="admin:manage:user:update">
             <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-            <Divider type="vertical" />
+          </Authorized>
+          <Divider type="vertical" />
+          
+          <Authorized authority="admin:manage:user:disable">
             {record.status === 1 &&
               <Popconfirm
                 title="确认禁用该用户?"
@@ -159,6 +162,9 @@ class TableList extends Component<TableListProps, TableListState> {
                 <a style={{ color: 'red' }}>禁用</a>
               </Popconfirm>
             }
+          </Authorized>
+
+          <Authorized authority="admin:manage:user:enable">
             {record.status === 0 &&
               <Popconfirm
                 title="确认启用该用户?"
@@ -177,7 +183,7 @@ class TableList extends Component<TableListProps, TableListState> {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'admin/list',
+      type: 'userManage/list',
       payload: {
         pageNo: 1,
         pageSize: 10
@@ -217,7 +223,7 @@ class TableList extends Component<TableListProps, TableListState> {
     })
 
     dispatch({
-      type: 'admin/list',
+      type: 'userManage/list',
       payload: {
         ...params,
         pageNo: pagination.current,
@@ -233,7 +239,7 @@ class TableList extends Component<TableListProps, TableListState> {
       formValues: {},
     });
     dispatch({
-      type: 'admin/list',
+      type: 'userManage/list',
       payload: {
         pageNo: 1,
         pageSize: 10
@@ -250,17 +256,17 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleDisable = (record) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.userManage.data;
     const { formValues } = this.state;
     dispatch({
-      type: 'admin/disable',
+      type: 'userManage/disable',
       payload: {
         id: record.id,
       },
       callback: (response) => {
         if (response.code === 200) {
           dispatch({
-            type: 'admin/list',
+            type: 'userManage/list',
             payload: {...pagination, ...formValues}
           })
           this.setState({
@@ -274,17 +280,17 @@ class TableList extends Component<TableListProps, TableListState> {
   };
 
   handleEnable = (record) => {
-    const { dispatch, admin:{data:{pagination}} } = this.props;
+    const { dispatch, userManage:{data:{pagination}} } = this.props;
     const { formValues } = this.state;
     dispatch({
-      type: 'admin/enable',
+      type: 'userManage/enable',
       payload: {
         id: record.id,
       },
       callback: (response) => {
         if (response.code === 200) {
           dispatch({
-            type: 'admin/list',
+            type: 'userManage/list',
             payload: {...pagination,...formValues}
           })
           this.setState({
@@ -328,7 +334,7 @@ class TableList extends Component<TableListProps, TableListState> {
     });
 
     dispatch({
-      type: 'admin/list',
+      type: 'userManage/list',
       payload: values,
     });
   };
@@ -337,7 +343,7 @@ class TableList extends Component<TableListProps, TableListState> {
     const { dispatch } = this.props;
     if (flag) {
       dispatch({
-        type: 'admin/queryRoles',
+        type: 'userManage/queryRoles',
         callback: (res) => {
           this.setState({ roleList: res.data });
           this.setState({
@@ -360,7 +366,7 @@ class TableList extends Component<TableListProps, TableListState> {
       let keys:string[] = []
       if (record && record.roles) keys = record.roles.map(item => `${item.id}`)
       dispatch({
-        type: 'admin/queryRoles',
+        type: 'userManage/queryRoles',
         callback: (res) => {
           this.setState({
             updateModalVisible: !!flag,
@@ -382,16 +388,16 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleAdd = (fields, createForm) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.userManage.data;
     dispatch({
-      type: 'admin/add',
+      type: 'userManage/add',
       payload: {...fields},
       callback: (response) => {
         message.success("添加成功");
         this.handleModalVisible();
         createForm.resetFields();
         dispatch({
-          type: 'admin/list',
+          type: 'userManage/list',
           payload: {...pagination},
         });
       }
@@ -401,9 +407,9 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleUpdate = (fields: UpdateValsType, createForm) => {
     const { dispatch } = this.props;
-    const { pagination } = this.props.admin.data;
+    const { pagination } = this.props.userManage.data;
     dispatch({
-      type: 'admin/update',
+      type: 'userManage/update',
       payload: {...fields},
       callback: (response) => {
         if (response.code === 200) {
@@ -411,7 +417,7 @@ class TableList extends Component<TableListProps, TableListState> {
           this.handleUpdateModalVisible();
           createForm.resetFields();
           dispatch({
-            type: 'admin/list',
+            type: 'userManage/list',
             payload: {...pagination},
           });
         } else {
@@ -423,7 +429,7 @@ class TableList extends Component<TableListProps, TableListState> {
 
   handleRemove = (e: React.FormEvent) => {
     e.preventDefault();
-    const { dispatch, admin:{data:{pagination}}} = this.props;
+    const { dispatch, userManage:{data:{pagination}}} = this.props;
     const { selectedRows, formValues } = this.state;
     const namesStr = selectedRows.map(item => item.username).join('、')
     Modal.confirm({
@@ -441,11 +447,11 @@ class TableList extends Component<TableListProps, TableListState> {
           return;
         }
         dispatch({
-          type: 'admin/remove',
+          type: 'userManage/remove',
           payload: { id_list },
           callback: () => {
             dispatch({
-              type: 'admin/list',
+              type: 'userManage/list',
               payload: {...pagination, ...formValues}
             })
             this.setState({
@@ -570,7 +576,7 @@ class TableList extends Component<TableListProps, TableListState> {
 
   render() {
     const {
-      admin: { data },
+      userManage: { data },
       loading,
       form,
     } = this.props;
@@ -602,12 +608,12 @@ class TableList extends Component<TableListProps, TableListState> {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Authorized authority="admin:user:add">
+              <Authorized authority="admin:manage:user:add">
                 <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
                   新建
                 </Button>
               </Authorized>
-              <Authorized authority="admin:user:delete">
+              <Authorized authority="admin:manage:user:delete">
                 {selectedRows.length > 0 && (
                   <span>
                     <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>

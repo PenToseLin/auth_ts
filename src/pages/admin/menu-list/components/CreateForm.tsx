@@ -56,7 +56,10 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
     >
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级菜单">
         {form.getFieldDecorator('parent_id',
-        )(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll showSearch allowClear>
+        )(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll 
+          showSearch allowClear
+          treeNodeFilterProp='title'
+          filterTreeNode={(val, treeNode) => treeNode.props.title.indexOf(val) > -1}>
           {renderMenuTree(list)}
         </TreeSelect>)}
       </FormItem>

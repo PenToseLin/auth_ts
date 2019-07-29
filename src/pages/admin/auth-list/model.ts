@@ -56,8 +56,6 @@ const Model: ModelType = {
             type: 'saveAuth',
             payload: response.data,
           });
-        } else {
-          notification.error({ message: response.msg });
         }
       } catch (error) {
         yield put({
@@ -73,8 +71,6 @@ const Model: ModelType = {
       const response = yield call(queryAuthByMenu, payload)
       if (response.code === 200) {
         if (callback) callback(response)
-      } else {
-        notification.error({ message: response.msg });
       }
     },
     *add({ payload, callback }, { call }) {

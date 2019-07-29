@@ -106,9 +106,12 @@ class TableList extends Component<TableListProps, TableListState> {
       title: '操作',
       render: (text, record) => (
         <Fragment>
-          <Authorized authority="admin:menu:update">
+          <Authorized authority="admin:manage:menu:update">
             <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-            <Divider type="vertical" />
+          </Authorized>
+          <Divider type="vertical" />
+
+          <Authorized authority="admin:manage:menu:disable">
             {record.status === 1 &&
               <Popconfirm
                 title="确认禁用该菜单?"
@@ -118,6 +121,9 @@ class TableList extends Component<TableListProps, TableListState> {
                 <a style={{ color: 'red' }}>禁用</a>
               </Popconfirm>
             }
+          </Authorized>
+          
+          <Authorized authority="admin:manage:menu:enable">
             {record.status === 0 &&
               <Popconfirm
                 title="确认启用该菜单?"
@@ -443,12 +449,12 @@ class TableList extends Component<TableListProps, TableListState> {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Authorized authority="admin:menu:add">
+              <Authorized authority="admin:manage:menu:add">
                 <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
                   新建
                 </Button>
               </Authorized>
-              <Authorized authority="admin:menu:delete">
+              <Authorized authority="admin:manage:menu:delete">
                 {selectedRows.length > 0 && (
                   <span>
                     <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>

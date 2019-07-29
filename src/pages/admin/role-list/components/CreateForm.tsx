@@ -49,12 +49,13 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
 
     return (
       <Transfer
-        listStyle={{ width: 210 }}
+        listStyle={{ width: 210, height: 300, }}
         dataSource={dataSource}
         titles={['未分配权限', '已分配权限']}
         targetKeys={targetKeys}
         render={item => `${item.title}`}
         onChange={handleChange}
+        showSearch
       />
     );
   };

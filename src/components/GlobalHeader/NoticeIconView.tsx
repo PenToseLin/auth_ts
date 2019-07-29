@@ -24,6 +24,7 @@ class GlobalHeaderRight extends Component<GlobalHeaderRightProps> {
     if (notices.length === 0) {
       return {};
     }
+    // console.log('notices: ', notices);
     const newNotices = notices.map(notice => {
       const newNotice = { ...notice };
       if (newNotice.datetime) {

@@ -80,6 +80,10 @@ class TableList extends Component<TableListProps, TableListState> {
 
   columns: StandardTableColumnProps[] = [
     {
+      title: '菜单',
+      dataIndex: 'menu.menu_name'
+    },
+    {
       title: '权限名称',
       width: 200,
       dataIndex: 'auth_name',
@@ -101,10 +105,6 @@ class TableList extends Component<TableListProps, TableListState> {
       dataIndex: 'method',
     },
     {
-      title: '菜单',
-      dataIndex: 'menu.menu_name'
-    },
-    {
       title: '权限路径',
       dataIndex: 'url',
     },
@@ -122,9 +122,11 @@ class TableList extends Component<TableListProps, TableListState> {
       title: '操作',
       render: (text, record) => (
         <Fragment>
-          <Authorized authority="admin:auth:update">
+          <Authorized authority="admin:manage:auth:update">
             <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-            <Divider type="vertical" />
+          </Authorized>
+          <Divider type="vertical" />
+          <Authorized authority="admin:manage:auth:disable">
             {record.status === 1 &&
               <Popconfirm
                 title="确认禁用该权限?"
@@ -134,6 +136,8 @@ class TableList extends Component<TableListProps, TableListState> {
                 <a style={{ color: 'red' }}>禁用</a>
               </Popconfirm>
             }
+          </Authorized>
+          <Authorized authority="admin:manage:auth:enable">
             {record.status === 0 &&
               <Popconfirm
                 title="确认启用该权限?"
@@ -506,12 +510,12 @@ class TableList extends Component<TableListProps, TableListState> {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Authorized authority="admin:auth:add">
+              <Authorized authority="admin:manage:auth:add">
                 <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
                   新建
                 </Button>
               </Authorized>
-              <Authorized authority="admin:auth:delete">
+              <Authorized authority="admin:manage:auth:delete">
                 {selectedRows.length > 0 && (
                   <span>
                     <Button onClick={this.handleRemove} icon="delete" type="danger">删除</Button>

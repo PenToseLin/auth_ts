@@ -42,23 +42,11 @@ const Model: ModelType = {
 
   effects: {
     *list({ payload }, { call, put }) {
-      try {
-        const response = yield call(queryMenuList, payload);
-        if (response.code === 200) {
-          yield put({
-            type: 'save',
-            payload: response.data,
-          });
-        } else {
-          notification.error({ message: response.msg });
-        }
-      } catch (error) {
+      const response = yield call(queryMenuList, payload);
+      if (response.code === 200) {
         yield put({
           type: 'save',
-          payload: {
-            list: [],
-            pagination: {}
-          },
+          payload: response.data,
         });
       }
     },

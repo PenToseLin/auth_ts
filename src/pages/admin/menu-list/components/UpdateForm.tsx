@@ -64,7 +64,10 @@ const UpdateForm: React.SFC<UpdateFormProps> = props => {
       <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="上级菜单">
         {form.getFieldDecorator('parent_id',{
           initialValue: values.parent_id,
-        })(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll disabled showSearch allowClear>
+        })(<TreeSelect style={{ width: '100%' }} treeDefaultExpandAll 
+          disabled showSearch allowClear
+          treeNodeFilterProp='title'
+          filterTreeNode={(val, treeNode) => treeNode.props.title.indexOf(val) > -1}>
           {renderMenuTree(list)}
         </TreeSelect>)}
       </FormItem>

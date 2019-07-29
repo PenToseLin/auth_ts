@@ -1,4 +1,5 @@
-import request from 'umi-request';
+// import request from 'umi-request';
+import request from '@/utils/request.axios';
 import { FromDataType } from './index';
 
 export async function fakeAccountLogin(params: FromDataType) {
