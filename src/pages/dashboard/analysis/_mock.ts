@@ -13,7 +13,7 @@ for (let i = 0; i < fakeY.length; i += 1) {
   });
 }
 
-const visitData2 = [];
+const visitData2:any[] = [];
 const fakeY2 = [1, 6, 4, 8, 3, 7, 2];
 for (let i = 0; i < fakeY2.length; i += 1) {
   visitData2.push({
@@ -22,14 +22,14 @@ for (let i = 0; i < fakeY2.length; i += 1) {
   });
 }
 
-const salesData = [];
+const salesData:any[] = [];
 for (let i = 0; i < 12; i += 1) {
   salesData.push({
     x: `${i + 1}月`,
     y: Math.floor(Math.random() * 1000) + 200,
   });
 }
-const searchData = [];
+const searchData:any[] = [];
 for (let i = 0; i < 50; i += 1) {
   searchData.push({
     index: i + 1,
@@ -116,14 +116,14 @@ const salesTypeDataOffline = [
   },
 ];
 
-const offlineData = [];
+const offlineData:any[] = [];
 for (let i = 0; i < 10; i += 1) {
   offlineData.push({
     name: `Stores ${i}`,
     cvr: Math.ceil(Math.random() * 9) / 10,
   });
 }
-const offlineChartData = [];
+const offlineChartData:any[] = [];
 for (let i = 0; i < 20; i += 1) {
   offlineChartData.push({
     x: new Date().getTime() + 1000 * 60 * 30 * i,

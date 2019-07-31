@@ -88,7 +88,6 @@ class Analysis extends Component<
     this.setState({
       rangePickerValue,
     });
-
     dispatch({
       type: 'dashboardAnalysis/fetchSalesData',
     });
